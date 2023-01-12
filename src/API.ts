@@ -54,7 +54,8 @@ export class API {
   // also delete users that havent logged in in 100 days
 
   // Create user
-  // if user exist, do not allow
+  // if user exist, do not allow, because we do not allow duplicate users
+  // if user exists, fetch user from DB, if exists,
 
   // send in username and PW
   // then object with username, pw and pwid should be in DB
