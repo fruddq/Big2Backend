@@ -8,7 +8,9 @@
     "build": "tsc -p ./tsconfig.json",
     "build:production": "npm run lint && npm run build",
     "lint": "rome check ./src",
-    "dev": "nodemon ./src/main.ts"
+    "dev": "nodemon ./src/main.ts",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "Frudd",

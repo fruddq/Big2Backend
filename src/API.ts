@@ -46,6 +46,7 @@ export class API {
   async initDB() {
     await this.DB.authenticate()
     await this.DB.sync({ force: true })
+    return this
   }
 
   // @TODO When project is finished, ensure anonymous is allowed,
@@ -54,6 +55,10 @@ export class API {
 
   // Create user
   // if user exist, do not allow
+
+  // send in username and PW
+  // then object with username, pw and pwid should be in DB
+  // now get from DB and chkeck that it exists.
   async createUser({
     userName,
     password,
@@ -61,11 +66,7 @@ export class API {
     readonly userName: string
     readonly password: string
   }) {
-    try {
-      await this.models.User.create({ userName, password, playerID: uuidv4() })
-    } catch (err) {
-      console.error(err)
-    }
+    await this.models.User.create({ userName, password, playerID: uuidv4() })
   }
 
   // static async createTable() {
