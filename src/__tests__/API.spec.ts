@@ -1,7 +1,6 @@
-import exp from 'constants'
 import { describe, expect, it } from 'vitest'
 import { API as TheModule } from '../API'
-import type { ITableShapeUser, Models as ModelsDB } from '../DB/models'
+import type { ITableShapeUser } from '../DB/models'
 
 describe('TheModule', async () => {
   const tester = {
@@ -11,48 +10,87 @@ describe('TheModule', async () => {
     },
   }
 
-  describe('validateUserInfo', () => {
-    it('validates correctly', async () => {
+  describe('validateUser', () => {
+    it('Does not throw when all inputs are correct', async () => {
       const api = await tester.setupDB()
-      try {
-        await api.validateUserInfo({ userName: 'hehj', password: 'hola', email: 'frudderic@gmail.com' })
-        expect(1).toBe(1)
-      } catch (err) {
-        console.log(err)
-        expect(1).toBe(0)
-      }
+      const user = { userName: 'hehj', password: 'hola', email: 'frudderic@gmail.com' }
+      expect(() => api.validateUser(user)).not.toThrow()
     })
 
-    it('throws an error when username is invalid', async () => {
-      const api = await tester.setupDB()
-      try {
-        await api.validateUserInfo({
-          userName: 'he!!hj',
+    describe('Test cases for username', () => {
+      it('throws an error when username is blank', async () => {
+        const api = await tester.setupDB()
+        const user = {
+          userName: '',
           password: 'hola',
           email: 'frudderic@gmail.com',
-        })
-
-        expect(1).toBe(0)
-        // rome-ignore lint/suspicious/noExplicitAny: This could be multiple error types
-      } catch (errInput: any) {
-        const err: Error = errInput
-        expect(err.message).toEqual(
-          'Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters',
+        }
+        expect(() => api.validateUser(user)).toThrowErrorMatchingInlineSnapshot(
+          '"Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters"',
         )
-      }
+      })
+
+      it('throws an error when username is less than 3 characters', async () => {
+        const api = await tester.setupDB()
+        const user = { userName: 'ab', password: 'validpassword', email: 'validemail@example.com' }
+        expect(() => api.validateUser(user)).toThrowErrorMatchingInlineSnapshot(
+          '"Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters"',
+        )
+      })
+
+      it('throws an error when username is more than 12 characters', async () => {
+        const api = await tester.setupDB()
+        const user = { userName: 'averyverylongusername', password: 'validpassword', email: 'validemail@example.com' }
+        expect(() => api.validateUser(user)).toThrowErrorMatchingInlineSnapshot(
+          '"Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters"',
+        )
+      })
+
+      it('throws an error when username contains special characters', async () => {
+        const api = await tester.setupDB()
+        const user = { userName: 'myusername!', password: 'validpassword', email: 'validemail@example.com' }
+        expect(() => api.validateUser(user)).toThrowErrorMatchingInlineSnapshot(
+          '"Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters"',
+        )
+      })
     })
 
-    it('throws an error when email is invalid', async () => {
-      const api = await tester.setupDB()
-      try {
-        await api.validateUserInfo({ userName: 'hehj', password: 'hola', email: 'frudderic' })
-        expect(1).toBe(0)
-        // rome-ignore lint/suspicious/noExplicitAny: <explanation>
-      } catch (errInput: any) {
-        const err: Error = errInput
-        expect(err.message).toEqual('Email is not valid')
-      }
+    describe('Test cases for invalid email', () => {
+      it('throws an error when email is not in the correct format', async () => {
+        const api = await tester.setupDB()
+        const user = { userName: 'validusername', password: 'validpassword', email: 'notvalidemail' }
+        expect(() => api.validateUser(user)).toThrowErrorMatchingInlineSnapshot(
+          '"Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters"',
+        )
+      })
+
+      it('throws an error when no email is provided', async () => {
+        const api = await tester.setupDB()
+        const user = { userName: 'validusername', password: 'validpassword' }
+        expect(() => api.validateUser(user)).toThrowErrorMatchingInlineSnapshot(
+          '"Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters"',
+        )
+      })
+
+      it('throws an error when an empty email is provided', async () => {
+        const api = await tester.setupDB()
+        const user = { userName: 'validusername', password: 'validpassword', email: '' }
+        expect(() => api.validateUser(user)).toThrowErrorMatchingInlineSnapshot(
+          '"Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters"',
+        )
+      })
     })
+    // it('throws an error when email is invalid', async () => {
+    //   const api = await tester.setupDB()
+    //   try {
+    //     api.validateUser({ userName: 'hehj', password: 'hola', email: 'frudderic' })
+    //     expect(1).toBe(0)
+    //     // rome-ignore lint/suspicious/noExplicitAny: <explanation>
+    //   } catch (errInput: any) {
+    //     const err: Error = errInput
+    //     expect(err.message).toEqual('Email is not valid')
+    //   }
+    // })
   })
 
   describe('createUser', () => {

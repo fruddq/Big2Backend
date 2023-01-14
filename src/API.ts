@@ -27,7 +27,7 @@ export class API {
     return this
   }
 
-  validateUserInfo({
+  validateUser({
     userName,
     password,
     email,
@@ -83,7 +83,7 @@ export class API {
     password,
     email,
   }: { readonly userName: string; readonly password: string; readonly email: string }) {
-    this.validateUserInfo({ userName, password, email })
+    this.validateUser({ userName, password, email })
 
     const lowerCaseUserName = userName.toLowerCase() //checking db for lowercase will result in case sensetive username check, Frudd and frudd is counted as duplicate
     const existingUser = await this.models.User.findOne({ where: { lowerCaseUserName } })
