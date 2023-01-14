@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi, afterEach } from 'vitest'
 import { API as TheModule } from '../API'
 import type { ITableShapeUser } from '../DB/models'
 
@@ -64,15 +64,7 @@ describe('TheModule', async () => {
         )
       })
 
-      it('throws an error when no email is provided', async () => {
-        const api = await tester.setupDB()
-        const user = { userName: 'validusername', password: 'validpassword' }
-        expect(() => api.validateUser(user)).toThrowErrorMatchingInlineSnapshot(
-          '"Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters"',
-        )
-      })
-
-      it('throws an error when an empty email is provided', async () => {
+      it('throws an error when an email is blank', async () => {
         const api = await tester.setupDB()
         const user = { userName: 'validusername', password: 'validpassword', email: '' }
         expect(() => api.validateUser(user)).toThrowErrorMatchingInlineSnapshot(
@@ -80,17 +72,24 @@ describe('TheModule', async () => {
         )
       })
     })
-    // it('throws an error when email is invalid', async () => {
-    //   const api = await tester.setupDB()
-    //   try {
-    //     api.validateUser({ userName: 'hehj', password: 'hola', email: 'frudderic' })
-    //     expect(1).toBe(0)
-    //     // rome-ignore lint/suspicious/noExplicitAny: <explanation>
-    //   } catch (errInput: any) {
-    //     const err: Error = errInput
-    //     expect(err.message).toEqual('Email is not valid')
-    //   }
-    // })
+
+    describe('Test cases for invalid password', () => {
+      it('throws an error when password is less than 8 characters', async () => {
+        const api = await tester.setupDB()
+        const user = { userName: 'validusername', password: 'short', email: 'validemail@example.com' }
+        expect(() => api.validateUser(user)).toThrowErrorMatchingInlineSnapshot(
+          '"Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters"',
+        )
+      })
+
+      it('throws an error when an empty password is provided', async () => {
+        const api = await tester.setupDB()
+        const user = { userName: 'validusername', password: '', email: 'validemail@example.com' }
+        expect(() => api.validateUser(user)).toThrowErrorMatchingInlineSnapshot(
+          '"Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters"',
+        )
+      })
+    })
   })
 
   describe('createUser', () => {
@@ -150,6 +149,11 @@ describe('TheModule', async () => {
       )
     })
 
-    //It 'validationFN is called with the right arguments' https://vitest.dev/guide/mocking.html
+    it('validateUser has been called upon with correct arguments', async () => {
+      const api = await tester.setupDB()
+      const spy = vi.spyOn(api, 'validateUser')
+      await api.createUser(user)
+      expect(spy).toHaveBeenCalledTimes(1)
+    })
   })
 }, 1000)
