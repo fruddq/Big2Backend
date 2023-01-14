@@ -22,7 +22,15 @@ export class API {
           type: DataTypes.STRING,
           allowNull: false,
         },
+        lowerCaseUserName: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
         password: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        email: {
           type: DataTypes.STRING,
           allowNull: false,
         },
@@ -54,7 +62,7 @@ export class API {
   // also delete users that havent logged in in 100 days
 
   // Create user
-  // if user exist, do not allow, because we do not allow duplicate users
+  // if user exist, do not allow, no duplicate users
   // if user exists, fetch user from DB, if exists,
 
   // send in username and PW
@@ -63,11 +71,22 @@ export class API {
   async createUser({
     userName,
     password,
-  }: {
-    readonly userName: string
-    readonly password: string
-  }) {
-    await this.models.User.create({ userName, password, playerID: uuidv4() })
+    email,
+  }: { readonly userName: string; readonly password: string; readonly email: string }) {
+    const specialChars = /[ !@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/
+
+    if (specialChars.test(userName)) {
+      throw new Error("UserName can only contain letters and numbers")
+    }
+
+    const lowerCaseUserName = userName.toLowerCase()
+    const existingUser = await this.models.User.findOne({ where: { lowerCaseUserName } })
+
+    if (existingUser) {
+      throw new Error("User with that name already exists")
+    }
+
+    await this.models.User.create({ userName, lowerCaseUserName, password, email, playerID: uuidv4() })
   }
 
   // static async createTable() {
@@ -97,6 +116,7 @@ export class API {
   //     console.error(err)
   //   }
   // }
-} // await API.createUser()
-// const api = new API()
-// await api.initDB()
+}
+const api = new API()
+await api.initDB()
+await api.createUser({ userName: "fruDD", password: "fruddspassword", email: "frudd@email.com" })

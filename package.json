@@ -9,6 +9,7 @@
     "build:production": "npm run lint && npm run build",
     "lint": "rome check ./src",
     "dev": "nodemon ./src/main.ts",
+    "dev-API": "nodemon ./src/API.ts",
     "test": "vitest",
     "coverage": "vitest run --coverage"
   },

@@ -9,9 +9,11 @@ describe("TheModule", async () => {
     },
   }
 
-  it("functions correcly", async () => {
-    expect(1).toBe(1)
-    const api = await tester.setupDB()
-    await api.createUser({ userName: "hehj", password: "hola" })
+  describe("createUser", () => {
+    it("functions correcly", async () => {
+      expect(1).toBe(1)
+      const api = await tester.setupDB()
+      await api.createUser({ userName: "hehj", password: "hola" })
+    })
   })
 }, 1000)
