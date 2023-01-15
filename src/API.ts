@@ -3,19 +3,27 @@ import { v4 as uuidv4 } from 'uuid'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 import { Models as ModelsDB } from './DB/models'
+import { validateUser } from './modules/validateUser'
+import { isTest } from './config'
 
+// @TODO Models not found
 export class API {
   DB: Sequelize
-  ajv: Ajv
+  ajv = new Ajv()
   models: ReturnType<typeof ModelsDB['initDB']>
+  // this was made like this because it will not be used in constructor
+  // the reason it was made was so it could be spied upon in tests
+  validators = {
+    user: validateUser,
+  }
 
   constructor() {
+    // @TODO Change this information depending on test or production
     this.DB = new Sequelize('default_database', 'username', 'password', {
       host: 'localhost',
       dialect: 'postgres',
     })
 
-    this.ajv = new Ajv()
     addFormats(this.ajv)
 
     this.models = ModelsDB.initDB(this.DB)
@@ -23,53 +31,8 @@ export class API {
 
   async initDB() {
     await this.DB.authenticate()
-    await this.DB.sync({ force: true })
+    await this.DB.sync({ force: isTest })
     return this
-  }
-
-  validateUser({
-    userName,
-    password,
-    email,
-  }: { readonly userName: string; readonly password: string; readonly email: string }) {
-    // @TODO: Check why import/export not work for schemas
-    const emailSchema = {
-      type: 'string',
-      format: 'email',
-      required: ['email'],
-    }
-
-    const userNameSchema = {
-      type: 'string',
-      minLength: 3,
-      maxLength: 12,
-      pattern: '^[a-zA-Z0-9]+$',
-      required: ['userName'],
-    }
-
-    const passwordSchema = {
-      type: 'string',
-      format: 'password',
-      required: ['password'],
-    }
-
-    const validUsername = this.ajv.validate(userNameSchema, userName)
-    if (!validUsername) {
-      throw new Error(
-        'Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters',
-      )
-    }
-
-    //May not be required to validate password, check password specification openApi 3.0.0 specification
-    const validPassword = this.ajv.validate(passwordSchema, password)
-    if (!validPassword) {
-      throw new Error('Password is not valid')
-    }
-
-    const validEmail = this.ajv.validate(emailSchema, email)
-    if (!validEmail) {
-      throw new Error('Email is not valid')
-    }
   }
 
   // @TODO When project is finished, ensure anonymous is allowed,
@@ -83,7 +46,7 @@ export class API {
     password,
     email,
   }: { readonly userName: string; readonly password: string; readonly email: string }) {
-    this.validateUser({ userName, password, email })
+    this.validators.user({ userName, password, email }, this.ajv)
 
     const lowerCaseUserName = userName.toLowerCase() //checking db for lowercase will result in case sensetive username check, Frudd and frudd is counted as duplicate
     const existingUser = await this.models.User.findOne({ where: { lowerCaseUserName } })

@@ -1,17 +1,19 @@
 export const emailSchema = {
-  properties: {
-    email: {
-      type: "string",
-      format: "email",
-    },
-  },
-  required: ["email"],
+  type: 'string',
+  format: 'email',
+  required: ['email'],
 }
 
 export const userNameSchema = {
-  type: "string",
+  type: 'string',
   minLength: 3,
-  maxLength: 10,
-  pattern: "^[a-zA-Z0-9]+$",
-  required: ["userName"],
+  maxLength: 12,
+  pattern: '^[a-zA-Z0-9]+$',
+  required: ['userName'],
+}
+
+export const passwordSchema = {
+  type: 'string',
+  format: 'password',
+  required: ['password'],
 }
