@@ -80,20 +80,6 @@ export class Models {
           type: DataTypes.STRING,
           allowNull: true,
         },
-        password: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-        email: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-        //For now the game will accept changing password just with correct username and email,
-        //after it should send confirmation email with a link that checks changeUserInfoID to database for changing name, password,email.
-        changeUserInfoID: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
         // PlayerID is not neccesary ATM, when allowing anonymous users this will be important
         playerID: {
           type: DataTypes.STRING,

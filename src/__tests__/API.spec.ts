@@ -32,7 +32,6 @@ describe('TheModule', async () => {
       expect(playerID).toHaveLength(36)
       expect(updatedAt).toBeInstanceOf(Date)
 
-      // console.log(JSON.stringify(dataValues, undefined, 20))
       expect(dataValues).toMatchInlineSnapshot(`
         {
           "email": "frudd@example.com",
@@ -48,17 +47,37 @@ describe('TheModule', async () => {
 
     it('throws an error when username already exists', async ({ expect }) => {
       const api = await tester.setupDB()
-      await api.createUser(user)
-      await expect(api.createUser(user)).rejects.toThrowErrorMatchingInlineSnapshot(
-        '"User with that name already exists"',
+      await api.createUser({ userName: 'testUser', password: 'password', email: 'frudd@example.com' })
+      await expect(
+        api.createUser({ userName: 'testUser', password: 'password', email: 'frudd@example.com' }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot('"User with that name already exists"')
+    })
+
+    it('validateUser has been called upon with correct arguments and does not throw', async ({ expect }) => {
+      const api = await tester.setupDB()
+      const spy = vi.spyOn(api.validators, 'user')
+
+      await expect(
+        api.createUser({ userName: 'Jens', password: 'password', email: 'frudd@example.com' }),
+      ).resolves.not.toThrow()
+      expect(spy).toHaveBeenCalledTimes(1)
+      expect(spy).toHaveBeenCalledWith({ userName: 'Jens', password: 'password', email: 'frudd@example.com' }, api.ajv)
+
+      spy.mockClear()
+    })
+
+    it('throws an error when passed an invalid username', async ({ expect }) => {
+      const invalidUsername = { userName: 'fr', password: 'password', email: 'frudd@example.com' }
+      const api = await tester.setupDB()
+      await expect(api.createUser(invalidUsername)).rejects.toThrowErrorMatchingInlineSnapshot(
+        '"Invalid username. Username must contain a minimum of 3 characters, maximum of 12 characters and cannot cannot contain special characters"',
       )
     })
 
-    it('validateUser has been called upon with correct arguments', async ({ expect }) => {
-      const api = await tester.setupDB()
-      const spy = vi.spyOn(api.validators, 'user')
-      await api.createUser(user)
-      expect(spy).toHaveBeenCalledTimes(1)
-    })
+    // it('throws an error when passed an invalid password', async ({ expect }) => {
+    //   const invalidPassword = { userName: 'Frederic', password: 'asd', email: 'frudd@example.com' }
+    //   const api = await tester.setupDB()
+    //   await expect(api.createUser(invalidPassword)).rejects.toThrowErrorMatchingInlineSnapshot()
+    // })
   })
 }, 1000)

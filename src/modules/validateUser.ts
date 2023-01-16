@@ -1,5 +1,5 @@
 import type Ajv from 'ajv'
-import { emailSchema, passwordSchema, userNameSchema } from './schemas'
+import { emailSchema, passwordSchema, userNameSchema } from './schemas.js'
 
 export const validateUser = (
   { userName, password, email }: { readonly userName: string; readonly password: string; readonly email: string },

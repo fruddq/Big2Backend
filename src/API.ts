@@ -2,11 +2,10 @@ import { Sequelize } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
-import { Models as ModelsDB } from './DB/models'
-import { validateUser } from './modules/validateUser'
-import { isTest } from './config'
+import { Models as ModelsDB } from './DB/models.js'
+import { validateUser } from './modules/validateUser.js'
+import { isTest } from './config.js'
 
-// @TODO Models not found
 export class API {
   DB: Sequelize
   ajv = new Ajv()
@@ -31,6 +30,8 @@ export class API {
 
   async initDB() {
     await this.DB.authenticate()
+    // True should be isTest
+    console.log(isTest, 'HELLO')
     await this.DB.sync({ force: isTest })
     return this
   }
@@ -92,7 +93,6 @@ export class API {
   //   }
   // }
 }
-const api = new API()
-
-await api.initDB()
-await api.createUser({ userName: 'Frudd', password: 'fruddsPassword', email: 'frudd@gmail.com' })
+// const api = new API()
+// await api.initDB()
+// await api.createUser({ userName: 'Frudd', password: 'fruddsPassword', email: 'frudd@gmail.com' })

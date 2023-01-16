@@ -8,10 +8,13 @@
     "build": "tsc -p ./tsconfig.json",
     "build:production": "npm run lint && npm run build",
     "lint": "rome check ./src",
-    "dev": "NODE_ENV=development nodemon ./src/main.ts",
-    "dev-API": "NODE_ENV=development nodemon ./src/API.ts",
+    "dev": "set NODE_ENV=development && nodemon ./src/main.ts",
+    "dev-API": "set NODE_ENV=development && nodemon ./src/API.ts",
     "test": "vitest",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "linux-dev": "NODE_ENV=development nodemon ./src/main.ts",
+    "linux-dev-API": "NODE_ENV=development nodemon ./src/API.ts",
+    "bajs": "set NODE_ENV=development && nodemon ./src/bajs.ts"
   },
   "keywords": [],
   "author": "Frudd",
