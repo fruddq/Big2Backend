@@ -89,8 +89,7 @@ export class Models {
           allowNull: false,
         },
         //For now the game will accept changing password just with correct username and email,
-        //after it should send confirmation email with a link that checks changeUserInfoID to database for changing name and password.
-        //Changing email should not be possible to keep this game simple
+        //after it should send confirmation email with a link that checks changeUserInfoID to database for changing name, password,email.
         changeUserInfoID: {
           type: DataTypes.STRING,
           allowNull: false,
