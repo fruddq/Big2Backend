@@ -5,9 +5,6 @@ export const validateUser = (
   { userName, password, email }: { readonly userName: string; readonly password: string; readonly email: string },
   ajv: Ajv,
 ) => {
-  //   const ajv = new Ajv()
-  //   addFormats(ajv)
-
   const validUsername = ajv.validate(userNameSchema, userName)
   if (!validUsername) {
     throw new Error(
@@ -15,7 +12,7 @@ export const validateUser = (
     )
   }
 
-  //May not be required to validate password, check password specification openApi 3.0.0 specification
+  // @TODO check password specification openApi 3.0.0 specification
   const validPassword = ajv.validate(passwordSchema, password)
   if (!validPassword) {
     throw new Error('Password is not valid')

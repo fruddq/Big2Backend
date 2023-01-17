@@ -15,16 +15,36 @@ class TableUser extends Model {
   readonly updatedAt!: string
 }
 
+interface Player {
+  userName: string
+  roundPass: boolean
+}
+
+class TableGames extends Model {
+  readonly gameName!: string
+  readonly gameOwner!: string
+  readonly usersInTable!: string[]
+  readonly players!: {
+    readonly playerOne: Player
+    readonly playerTwo: Player
+    readonly playerThree: Player
+    readonly playerFour: Player
+  }
+  // created and updated is added from sequelize
+  readonly createdAt!: string
+  readonly updatedAt!: string
+}
+
 export class Models {
   // Should be a loop with the right types after game completion
   static initDB = (DB: Sequelize) => ({
-    User: Models.tables.User(DB),
-    GameTables: Models.tables.GameTables(DB),
+    User: Models.tables.Users(DB),
+    GameTables: Models.tables.TableGames(DB),
   })
 
   // want the KEY(User in this case) and the value to return to API
   static tables = {
-    User: (sequelize: Sequelize) => {
+    Users: (sequelize: Sequelize) => {
       TableUser.init(
         {
           userName: {
@@ -70,29 +90,48 @@ export class Models {
       return TableUser
     },
 
-    GameTables: (DB: Sequelize) =>
-      DB.define('GameTable', {
-        userName: {
-          type: DataTypes.STRING,
-          allowNull: false,
+    TableGames: (sequelize: Sequelize) => {
+      TableGames.init(
+        {
+          gameName: {
+            type: DataTypes.STRING,
+            allowNull: false,
+          },
+          gameOwner: {
+            type: DataTypes.STRING,
+            allowNull: false,
+          },
+          usersInTable: {
+            type: DataTypes.JSON,
+            allowNull: false,
+          },
+          players: {
+            type: DataTypes.JSON,
+            allowNull: false,
+            defaultValue: {
+              playerOne: {
+                userName: '',
+                roundPass: false,
+              },
+              playerTwo: {
+                userName: '',
+                roundPass: false,
+              },
+              playerThree: {
+                userName: '',
+                roundPass: false,
+              },
+              playerFour: {
+                userName: '',
+                roundPass: false,
+              },
+            },
+          },
         },
-        lowerCaseUserName: {
-          type: DataTypes.STRING,
-          allowNull: true,
-        },
-        // PlayerID is not neccesary ATM, when allowing anonymous users this will be important
-        playerID: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-        ownedTable: {
-          type: DataTypes.STRING,
-          allowNull: true,
-        },
-        joinedTable: {
-          type: DataTypes.STRING,
-          allowNull: true,
-        },
-      }),
+        { sequelize },
+      )
+
+      return TableGames
+    },
   }
 }
