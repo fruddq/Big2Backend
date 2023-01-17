@@ -40,7 +40,7 @@ export class API {
   // clear them every night and warn in frontend before, what happens if they do not register
   // also delete users that havent logged in in 100 days
 
-  async findUserInDB(userName: string) {
+  async getUser(userName: string) {
     const lowerCaseUserName = userName.toLowerCase() //checking db for lowercase will result in case sensetive username check, Frudd and frudd is counted as duplicate
     const existingUser = await this.models.Users.findOne({ where: { lowerCaseUserName } })
 
@@ -54,7 +54,7 @@ export class API {
   }: { readonly userName: string; readonly password: string; readonly email: string }) {
     this.validators.user({ userName, password, email }, this.ajv)
 
-    const existingUser = await this.findUserInDB(userName)
+    const existingUser = await this.getUser(userName)
     if (existingUser) {
       throw new Error('User with that name already exists')
     }
@@ -79,7 +79,7 @@ export class API {
       usersInTable,
     })
 
-    const existingUser = await this.findUserInDB(userName)
+    const existingUser = await this.getUser(userName)
 
     if (!existingUser) {
       throw new Error(`User with username ${userName} not found`)

@@ -1,3 +1,4 @@
+import exp from 'constants'
 import { describe, it, vi } from 'vitest'
 import { API as TheModule } from '../API'
 
@@ -11,6 +12,41 @@ describe('TheModule', async () => {
 
   describe('createUser', () => {
     const user = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+
+    describe('getUser', async () => {
+      it('finds the user in db if the user exists', async ({ expect }) => {
+        const api = await tester.setupDB()
+        await api.createUser(user)
+
+        const foundUser = await api.getUser(user.userName)
+        expect(foundUser).toBeTruthy()
+        console.log(foundUser)
+
+        const dataValuesOriginal = { ...foundUser!.dataValues }
+        const { changeUserInfoID, createdAt, playerID, updatedAt, ...userSnapshot } = dataValuesOriginal
+
+        expect(changeUserInfoID).toHaveLength(36)
+        expect(createdAt).toBeInstanceOf(Date)
+        expect(playerID).toHaveLength(36)
+        expect(updatedAt).toBeInstanceOf(Date)
+        expect(userSnapshot).toMatchInlineSnapshot(`
+          {
+            "email": "frudd@example.com",
+            "id": 1,
+            "joinedTable": null,
+            "lowerCaseUserName": "frudd",
+            "ownedTable": null,
+            "password": "password",
+            "userName": "frudd",
+          }
+        `)
+      })
+
+      it('returns NULL if user cant be found', async ({ expect }) => {
+        const api = await tester.setupDB()
+        expect(await api.getUser(user.userName)).toBeNull()
+      })
+    })
 
     it('creates a new user', async ({ expect }) => {
       const api = await tester.setupDB()
@@ -85,7 +121,9 @@ describe('TheModule', async () => {
     it('throws an error when passed an invalid password', async ({ expect }) => {
       const invalidPassword = { userName: 'Frederic', password: '', email: 'frudd@gmail.com' }
       const api = await tester.setupDB()
-      await expect(api.createUser(invalidPassword)).rejects.toThrowErrorMatchingInlineSnapshot('"Invalid password. Passworrd must contain at least five letters."')
+      await expect(api.createUser(invalidPassword)).rejects.toThrowErrorMatchingInlineSnapshot(
+        '"Invalid password. Passworrd must contain at least five letters."',
+      )
     })
   })
 
