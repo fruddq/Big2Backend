@@ -50,7 +50,6 @@ describe('TheModule', async () => {
 
     it('creates a new user', async ({ expect }) => {
       const api = await tester.setupDB()
-
       await api.createUser(user)
 
       const userInDB = await api.models.Users.findOne({
