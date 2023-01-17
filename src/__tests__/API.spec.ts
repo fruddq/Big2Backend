@@ -17,7 +17,7 @@ describe('TheModule', async () => {
 
       await api.createUser(user)
 
-      const userInDB = await api.models.User.findOne({
+      const userInDB = await api.models.Users.findOne({
         where: { lowerCaseUserName: user.userName.toLowerCase() },
       })
 
@@ -66,6 +66,8 @@ describe('TheModule', async () => {
       spy.mockClear()
     })
 
+    // @TODO check password specification openApi 3.0.0 specification
+
     it('throws an error when passed an invalid username', async ({ expect }) => {
       const invalidUsername = { userName: 'fr', password: 'password', email: 'frudd@example.com' }
       const api = await tester.setupDB()
@@ -74,10 +76,20 @@ describe('TheModule', async () => {
       )
     })
 
-    // it('throws an error when passed an invalid password', async ({ expect }) => {
-    //   const invalidPassword = { userName: 'Frederic', password: 'asd', email: 'frudd@example.com' }
-    //   const api = await tester.setupDB()
-    //   await expect(api.createUser(invalidPassword)).rejects.toThrowErrorMatchingInlineSnapshot()
-    // })
+    it('throws an error when passed an invalid email', async ({ expect }) => {
+      const invalidEmail = { userName: 'Frederic', password: 'password', email: 'frudd' }
+      const api = await tester.setupDB()
+      await expect(api.createUser(invalidEmail)).rejects.toThrowErrorMatchingInlineSnapshot('"Email is not valid"')
+    })
+
+    it('throws an error when passed an invalid password', async ({ expect }) => {
+      const invalidPassword = { userName: 'Frederic', password: '', email: 'frudd@gmail.com' }
+      const api = await tester.setupDB()
+      await expect(api.createUser(invalidPassword)).rejects.toThrowErrorMatchingInlineSnapshot('"Invalid password. Passworrd must contain at least five letters."')
+    })
+  })
+
+  describe('createGameTable', () => {
+    it('', () => {})
   })
 }, 1000)

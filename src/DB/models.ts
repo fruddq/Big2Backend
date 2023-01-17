@@ -2,13 +2,13 @@ import { DataTypes, Model, Sequelize } from 'sequelize'
 
 class TableUser extends Model {
   readonly changeUserInfoID!: string
-  readonly email!: string
-  readonly joinedTable!: string
-  readonly lowerCaseUserName!: string
-  readonly ownedTable!: string
-  readonly password!: string
+  email!: string
+  joinedTable!: string
+  lowerCaseUserName!: string
+  ownedTable!: string
+  password!: string
   readonly playerID!: string
-  readonly userName!: string
+  userName!: string
 
   // created and updated is added from sequelize
   readonly createdAt!: string
@@ -38,7 +38,7 @@ class TableGames extends Model {
 export class Models {
   // Should be a loop with the right types after game completion
   static initDB = (DB: Sequelize) => ({
-    User: Models.tables.Users(DB),
+    Users: Models.tables.Users(DB),
     GameTables: Models.tables.TableGames(DB),
   })
 
@@ -107,7 +107,7 @@ export class Models {
           },
           players: {
             type: DataTypes.JSON,
-            allowNull: false,
+            allowNull: true,
             defaultValue: {
               playerOne: {
                 userName: '',

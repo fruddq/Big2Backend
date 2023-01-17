@@ -15,5 +15,6 @@ export const userNameSchema = {
 export const passwordSchema = {
   type: 'string',
   format: 'password',
+  minLength: 5,
   required: ['password'],
 }

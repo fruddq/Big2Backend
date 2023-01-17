@@ -12,10 +12,9 @@ export const validateUser = (
     )
   }
 
-  // @TODO check password specification openApi 3.0.0 specification
   const validPassword = ajv.validate(passwordSchema, password)
   if (!validPassword) {
-    throw new Error('Password is not valid')
+    throw new Error('Invalid password. Passworrd must contain at least five letters.')
   }
 
   const validEmail = ajv.validate(emailSchema, email)

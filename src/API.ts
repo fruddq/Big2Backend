@@ -40,6 +40,13 @@ export class API {
   // clear them every night and warn in frontend before, what happens if they do not register
   // also delete users that havent logged in in 100 days
 
+  async findUserInDB(userName: string) {
+    const lowerCaseUserName = userName.toLowerCase() //checking db for lowercase will result in case sensetive username check, Frudd and frudd is counted as duplicate
+    const existingUser = await this.models.Users.findOne({ where: { lowerCaseUserName } })
+
+    return existingUser
+  }
+
   async createUser({
     userName,
     password,
@@ -47,25 +54,47 @@ export class API {
   }: { readonly userName: string; readonly password: string; readonly email: string }) {
     this.validators.user({ userName, password, email }, this.ajv)
 
-    const lowerCaseUserName = userName.toLowerCase() //checking db for lowercase will result in case sensetive username check, Frudd and frudd is counted as duplicate
-    const existingUser = await this.models.User.findOne({ where: { lowerCaseUserName } })
+    const existingUser = await this.findUserInDB(userName)
     if (existingUser) {
       throw new Error('User with that name already exists')
     }
 
-    await this.models.User.create({
+    await this.models.Users.create({
       userName,
-      lowerCaseUserName,
+      lowerCaseUserName: userName.toLowerCase(),
       password,
       email,
       playerID: uuidv4(),
       changeUserInfoID: uuidv4(),
     })
   }
+
+  // @TODO must also update User property joined/owned table
+  async createGameTable({ userName, gameName }: { readonly userName: string; readonly gameName: string }) {
+    const usersInTable: string[] = [userName]
+
+    await this.models.GameTables.create({
+      gameName,
+      gameOwner: userName,
+      usersInTable,
+    })
+
+    const existingUser = await this.findUserInDB(userName)
+
+    if (!existingUser) {
+      throw new Error(`User with username ${userName} not found`)
+    }
+
+    existingUser.ownedTable = gameName
+    existingUser.joinedTable = gameName
+
+    await existingUser.save()
+  }
 }
-const api = new API()
-await api.initDB()
-await api.createUser({ userName: 'testUser', password: 'testPassword', email: 'test@gmail.com' })
+
+// const api = new API()
+// await api.initDB()
+// await api.createUser({ userName: 'testUser', password: 'testPassword', email: 'test@gmail.com' })
 
 // static async createTable() {
 //   try {
