@@ -80,7 +80,7 @@ export class API {
     })
 
     const existingUser = await this.getUser(userName)
-
+    // @TODO check if u really need this, this will never happen
     if (!existingUser) {
       throw new Error(`User with username ${userName} not found`)
     }

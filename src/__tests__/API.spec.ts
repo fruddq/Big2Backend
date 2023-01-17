@@ -1,4 +1,3 @@
-import exp from 'constants'
 import { describe, it, vi } from 'vitest'
 import { API as TheModule } from '../API'
 
@@ -10,9 +9,9 @@ describe('TheModule', async () => {
     },
   }
 
-  describe('createUser', () => {
-    const user = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+  const user = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
 
+  describe('createUser', () => {
     describe('getUser', async () => {
       it('finds the user in db if the user exists', async ({ expect }) => {
         const api = await tester.setupDB()
