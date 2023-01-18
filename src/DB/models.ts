@@ -17,6 +17,7 @@ interface Player {
   userName: string
   roundPass: boolean
   cards: string[]
+  score: number
 }
 
 class TableGames extends Model {
@@ -110,21 +111,25 @@ export class Models {
                 userName: '',
                 cards: [],
                 roundPass: false,
+                score: 0,
               },
               playerTwo: {
                 userName: '',
                 cards: [],
                 roundPass: false,
+                score: 0,
               },
               playerThree: {
                 userName: '',
                 cards: [],
                 roundPass: false,
+                score: 0,
               },
               playerFour: {
                 userName: '',
                 cards: [],
                 roundPass: false,
+                score: 0,
               },
             },
           },

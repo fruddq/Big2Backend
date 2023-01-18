@@ -102,7 +102,10 @@ export class API {
     const game = await this.models.Games.findOne({
       where: { gameName: { [Op.iLike]: gameName } },
     })
-    if (game?.dataValues.usersInTable.includes(userName)) {
+    if (!game) {
+      throw new Error('Game not found, should not happen')
+    }
+    if (game.dataValues.usersInTable.includes(userName)) {
       throw new Error('User already in game')
     }
 
@@ -121,7 +124,11 @@ export class API {
     )
   }
 
-  async assignPlayer({ inputNumber, userName }: { readonly inputNumber: number; readonly userName: string }) {
+  async assignPlayer({
+    inputNumber,
+    userName,
+    gameName,
+  }: { readonly inputNumber: number; readonly userName: string; readonly gameName: string }) {
     if (inputNumber < 1 || inputNumber > 4) {
       throw new Error('Invalid input number. Please enter a number between 1-4.')
     }
@@ -132,17 +139,27 @@ export class API {
       3: 'playerThree',
       4: 'playerFour',
     }
-    const playerField = `players.${playerFieldMap[inputNumber]}` || ''
+    const playerField = `players.${playerFieldMap[inputNumber]}`
+
+    const game = await this.models.Games.findOne({
+      where: { gameName: { [Op.iLike]: gameName } },
+    })
+    if (!game) {
+      throw new Error('Game not found, should not happen')
+    }
+
+    const players = game.dataValues.players
+    const seat = playerFieldMap[inputNumber]
+    if (seat) {
+      if (players[seat].userName !== '') {
+        throw new Error('Seat taken, choose another position')
+      }
+    }
 
     await this.models.Games.update(
       { [`${playerField}.userName`]: userName },
-      { where: { gameName: { [Op.iLike]: 'Test' } } },
+      { where: { gameName: { [Op.iLike]: gameName } } },
     )
-
-    // const game = await this.models.Games.findOne({
-    //   where: { gameName: { [Op.iLike]: 'Test' } },
-    // })
-    // console.log(game?.dataValues)
   }
 }
 
@@ -153,9 +170,9 @@ const api = new API()
 await api.initDB()
 await api.createUser(user1)
 await api.createUser(user2)
-await api.createGame({ userName: user1.userName, gameName: 'Test' })
-await api.joinGame({ userName: user2.userName, gameName: 'Test' })
-await api.assignPlayer({ inputNumber: 4, userName: user1.userName })
+await api.createGame({ userName: user1.userName, gameName: 'BorisGame' })
+await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ inputNumber: 4, userName: user1.userName, gameName: 'BorisGame' })
 
 // @TODO Check for cascading linking database columns and cascade it:
 // players: {
