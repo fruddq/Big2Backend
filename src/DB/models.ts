@@ -1,4 +1,5 @@
 import { DataTypes, Model, Sequelize } from 'sequelize'
+import type { PlayerCards } from '../modules/PlayerCards'
 
 class TableUser extends Model {
   email!: string
@@ -16,7 +17,7 @@ class TableUser extends Model {
 interface Player {
   userName: string
   roundPass: boolean
-  cards: string[]
+  cards: PlayerCards
   score: number
 }
 

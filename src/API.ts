@@ -158,6 +158,17 @@ export class API {
 
     await game.set(`${playerField}.userName`, userName).save()
   }
+
+  // First should check that all seats are filled otherwise cannto start game
+  // then it should start the gameengine to create the deck and deal out cards
+  // then assign cards to to correct players in db
+  // async startGame({
+  //   inputNumber,
+  //   userName,
+  //   gameName,
+  // }: { readonly inputNumber: number; readonly userName: string; readonly gameName: string }) {
+
+  // }
 }
 
 // const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }

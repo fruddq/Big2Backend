@@ -15,6 +15,7 @@
     "linux-dev": "NODE_ENV=development nodemon ./src/main.ts",
     "linux-dev-API": "NODE_ENV=development nodemon ./src/API.ts",
     "bajs": "set NODE_ENV=development && nodemon ./src/bajs.ts",
+    "dev-Engine": "set NODE_ENV=development && nodemon ./src/modules/gameEngine.ts",
     "docker": "docker compose up"
   },
   "keywords": [],
