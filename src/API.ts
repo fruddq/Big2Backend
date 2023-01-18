@@ -156,23 +156,30 @@ export class API {
       }
     }
 
-    await this.models.Games.update(
-      { [`${playerField}.userName`]: userName },
-      { where: { gameName: { [Op.iLike]: gameName } } },
-    )
+    await game.set(`${playerField}.userName`, userName).save()
   }
 }
 
-const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
-const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
+// const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+// const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
+// const user3 = { userName: 'Jens', password: 'password', email: 'jonas@example.com' }
+// const user4 = { userName: 'Olof', password: 'password', email: 'jonas@example.com' }
+// const user5 = { userName: 'Jonas', password: 'password', email: 'jonas@example.com' }
 
-const api = new API()
-await api.initDB()
-await api.createUser(user1)
-await api.createUser(user2)
-await api.createGame({ userName: user1.userName, gameName: 'BorisGame' })
-await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
-await api.assignPlayer({ inputNumber: 4, userName: user1.userName, gameName: 'BorisGame' })
+// const api = new API()
+// await api.initDB()
+// await api.createUser(user1)
+// await api.createUser(user2)
+// await api.createGame({ userName: user1.userName, gameName: 'BorisGame' })
+
+// await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
+// await api.joinGame({ userName: user3.userName, gameName: 'BorisGame' })
+// await api.joinGame({ userName: user4.userName, gameName: 'BorisGame' })
+
+// await api.assignPlayer({ inputNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
+// await api.assignPlayer({ inputNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
+// await api.assignPlayer({ inputNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
+// await api.assignPlayer({ inputNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
 
 // @TODO Check for cascading linking database columns and cascade it:
 // players: {

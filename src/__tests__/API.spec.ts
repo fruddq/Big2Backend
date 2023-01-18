@@ -1,5 +1,6 @@
+import exp from 'constants'
 import { Op } from 'sequelize'
-import { describe, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { API as TheModule } from '../API'
 
 describe('TheModule', async () => {
@@ -255,21 +256,121 @@ describe('TheModule', async () => {
   })
 
   describe('assignPlayer', () => {
-    it('does', async () => {
+    const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+    const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
+    const user3 = { userName: 'Jens', password: 'password', email: 'jonas@example.com' }
+    const user4 = { userName: 'Olof', password: 'password', email: 'jonas@example.com' }
+    const user5 = { userName: 'Jonas', password: 'password', email: 'jonas@example.com' }
+    it('assigns player to correct seat', async () => {
       const api = await tester.setupDB()
-
-      const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
-      const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
 
       await api.createUser(user1)
       await api.createUser(user2)
-      await api.createGame({ userName: user1.userName, gameName: 'validGameName' })
-      await api.joinGame({ userName: user2.userName, gameName: 'validGameName' })
+      await api.createUser(user3)
+      await api.createUser(user4)
+      await api.createUser(user5)
 
-      // const game = await this.models.Games.findOne({
-      //   where: { gameName: { [Op.iLike]: 'Test' } },
-      // })
-      // console.log(game?.dataValues)
+      await api.createGame({ userName: user1.userName, gameName: 'validGameName' })
+
+      await api.joinGame({ userName: user2.userName, gameName: 'validGameName' })
+      await api.joinGame({ userName: user3.userName, gameName: 'validGameName' })
+      await api.joinGame({ userName: user4.userName, gameName: 'validGameName' })
+      await api.joinGame({ userName: user5.userName, gameName: 'validGameName' })
+
+      await api.assignPlayer({ inputNumber: 1, userName: user1.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ inputNumber: 2, userName: user2.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ inputNumber: 3, userName: user3.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ inputNumber: 4, userName: user4.userName, gameName: 'validGameName' })
+
+      const game = await api.models.Games.findOne({
+        where: { gameName: { [Op.iLike]: 'validGameName' } },
+      })
+
+      if (!game) {
+        throw new Error('Game not found, should not happen')
+      }
+      const dataValuesOriginal = { ...game.dataValues }
+      const { createdAt, updatedAt, ...dataValues } = dataValuesOriginal
+      expect(createdAt).toBeInstanceOf(Date)
+      expect(updatedAt).toBeInstanceOf(Date)
+      expect(dataValues).toMatchInlineSnapshot(`
+        {
+          "cardsThisRound": [],
+          "gameName": "validGameName",
+          "gameOwner": "frudd",
+          "id": 1,
+          "players": {
+            "playerFour": {
+              "cards": [],
+              "roundPass": false,
+              "score": 0,
+              "userName": "Olof",
+            },
+            "playerOne": {
+              "cards": [],
+              "roundPass": false,
+              "score": 0,
+              "userName": "frudd",
+            },
+            "playerThree": {
+              "cards": [],
+              "roundPass": false,
+              "score": 0,
+              "userName": "Jens",
+            },
+            "playerTwo": {
+              "cards": [],
+              "roundPass": false,
+              "score": 0,
+              "userName": "Nani",
+            },
+          },
+          "usersInTable": [
+            "frudd",
+            "Nani",
+            "Jens",
+            "Olof",
+            "Jonas",
+          ],
+        }
+      `)
+    })
+    it('throws when trying to choose a taken seat', async ({ expect }) => {
+      const api = await tester.setupDB()
+
+      await api.createUser(user1)
+      await api.createUser(user2)
+      await api.createUser(user3)
+      await api.createUser(user4)
+      await api.createUser(user5)
+
+      await api.createGame({ userName: user1.userName, gameName: 'validGameName' })
+
+      await api.joinGame({ userName: user2.userName, gameName: 'validGameName' })
+      await api.joinGame({ userName: user3.userName, gameName: 'validGameName' })
+      await api.joinGame({ userName: user4.userName, gameName: 'validGameName' })
+      await api.joinGame({ userName: user5.userName, gameName: 'validGameName' })
+
+      await api.assignPlayer({ inputNumber: 1, userName: user1.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ inputNumber: 2, userName: user2.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ inputNumber: 3, userName: user3.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ inputNumber: 4, userName: user4.userName, gameName: 'validGameName' })
+      await expect(
+        api.assignPlayer({ inputNumber: 4, userName: user5.userName, gameName: 'validGameName' }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot('"Seat taken, choose another position"')
+    })
+
+    it('throws when trying to sit in a position that doesnt exist', async ({ expect }) => {
+      const api = await tester.setupDB()
+
+      await api.createUser(user1)
+      await api.createGame({ userName: user1.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ inputNumber: 1, userName: user1.userName, gameName: 'validGameName' })
+      ;[-1000000, 0, 5, 10, 10000].forEach(async (number) => {
+        await expect(
+          api.assignPlayer({ inputNumber: number, userName: user1.userName, gameName: 'validGameName' }),
+        ).rejects.toThrowErrorMatchingInlineSnapshot('"Invalid input number. Please enter a number between 1-4."')
+      })
     })
   })
 }, 1000)
