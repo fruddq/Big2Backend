@@ -4,7 +4,6 @@ class TableUser extends Model {
   readonly changeUserInfoID!: string
   email!: string
   joinedTable!: string
-  lowerCaseUserName!: string
   ownedTable!: string
   password!: string
   readonly playerID!: string
@@ -51,10 +50,7 @@ export class Models {
             type: DataTypes.STRING,
             allowNull: false,
           },
-          lowerCaseUserName: {
-            type: DataTypes.STRING,
-            allowNull: true,
-          },
+
           password: {
             type: DataTypes.STRING,
             allowNull: false,

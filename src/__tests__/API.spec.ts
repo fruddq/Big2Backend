@@ -13,48 +13,12 @@ describe('TheModule', async () => {
   const user = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
 
   describe('createUser', () => {
-    describe('getUser', async () => {
-      it('finds the user in db if the user exists', async ({ expect }) => {
-        const api = await tester.setupDB()
-        await api.createUser(user)
-
-        const foundUser = await api.getUser(user.userName)
-        if (!foundUser) {
-          throw new Error('Should not happen')
-        }
-
-        const dataValuesOriginal = { ...foundUser!.dataValues }
-        const { changeUserInfoID, createdAt, playerID, updatedAt, ...userSnapshot } = dataValuesOriginal
-
-        expect(changeUserInfoID).toHaveLength(36)
-        expect(createdAt).toBeInstanceOf(Date)
-        expect(playerID).toHaveLength(36)
-        expect(updatedAt).toBeInstanceOf(Date)
-        expect(userSnapshot).toMatchInlineSnapshot(`
-          {
-            "email": "frudd@example.com",
-            "id": 1,
-            "joinedTable": null,
-            "lowerCaseUserName": "frudd",
-            "ownedTable": null,
-            "password": "password",
-            "userName": "frudd",
-          }
-        `)
-      })
-
-      it('returns NULL if user cant be found', async ({ expect }) => {
-        const api = await tester.setupDB()
-        expect(await api.getUser(user.userName)).toBeNull()
-      })
-    })
-
     it('creates a new user', async ({ expect }) => {
       const api = await tester.setupDB()
       await api.createUser(user)
 
       const userInDB = await api.models.Users.findOne({
-        where: { lowerCaseUserName: user.userName.toLowerCase() },
+        where: { userName: { [Op.iLike]: user.userName } },
       })
 
       if (!userInDB) {
@@ -73,7 +37,6 @@ describe('TheModule', async () => {
           "email": "frudd@example.com",
           "id": 1,
           "joinedTable": null,
-          "lowerCaseUserName": "frudd",
           "ownedTable": null,
           "password": "password",
           "userName": "frudd",
@@ -177,7 +140,7 @@ describe('TheModule', async () => {
       `)
 
       const userInDB = await api.models.Users.findOne({
-        where: { lowerCaseUserName: user.userName.toLowerCase() },
+        where: { userName: { [Op.iLike]: user.userName } },
       })
 
       if (!userInDB) {
@@ -202,7 +165,6 @@ describe('TheModule', async () => {
           "email": "frudd@example.com",
           "id": 1,
           "joinedTable": "validGameName",
-          "lowerCaseUserName": "frudd",
           "ownedTable": "validGameName",
           "password": "password",
           "userName": "frudd",
@@ -218,7 +180,7 @@ describe('TheModule', async () => {
 
       await expect(
         api.createGame({ userName: 'anotherUser', gameName: validGameName }),
-      ).rejects.toThrowErrorMatchingInlineSnapshot('"GameName already exists"')
+      ).rejects.toThrowErrorMatchingInlineSnapshot('"Game name already exists"')
     })
   })
 }, 1000)

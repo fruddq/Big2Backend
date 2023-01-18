@@ -40,14 +40,6 @@ export class API {
   // clear them every night and warn in frontend before, what happens if they do not register
   // also delete users that havent logged in in 100 days
 
-  // @TODO maybe delete this function and just add the code to createUser
-  async getUser(userName: string) {
-    const lowerCaseUserName = userName.toLowerCase() //checking db for lowercase will result in case sensetive username check, Frudd and frudd is counted as duplicate
-    const existingUser = await this.models.Users.findOne({ where: { lowerCaseUserName } })
-
-    return existingUser
-  }
-
   async createUser({
     userName,
     password,
@@ -55,14 +47,16 @@ export class API {
   }: { readonly userName: string; readonly password: string; readonly email: string }) {
     this.validators.user({ userName, password, email }, this.ajv)
 
-    const existingUser = await this.getUser(userName)
+    const existingUser = await this.models.Users.findOne({
+      where: { userName: { [Op.iLike]: userName } },
+    })
+
     if (existingUser) {
       throw new Error('User with that name already exists')
     }
 
     await this.models.Users.create({
       userName,
-      lowerCaseUserName: userName.toLowerCase(),
       password,
       email,
       playerID: uuidv4(),
@@ -77,7 +71,7 @@ export class API {
     })
 
     if (gameExists) {
-      throw new Error('Game mame already exists')
+      throw new Error('Game name already exists')
     }
 
     const usersInTable: string[] = [userName]
@@ -94,28 +88,28 @@ export class API {
         joinedTable: gameName,
       },
       {
-        where: { lowerCaseUserName: userName.toLowerCase() },
+        where: { userName: { [Op.iLike]: userName } },
       },
     )
   }
 
-  async joinGame({ userName, gameName }: { readonly userName: string; readonly gameName: string }) {
-    const usersInTable: string[] = [userName]
+  // async joinGame({ userName, gameName }: { readonly userName: string; readonly gameName: string }) {
+  //   const usersInTable: string[] = [userName]
 
-    await this.models.Games.create({
-      gameName,
-      gameOwner: userName,
-      usersInTable,
-    })
+  //   await this.models.Games.create({
+  //     gameName,
+  //     gameOwner: userName,
+  //     usersInTable,
+  //   })
 
-    await this.models.Users.update(
-      {
-        ownedTable: gameName,
-        joinedTable: gameName,
-      },
-      {
-        where: { lowerCaseUserName: userName.toLowerCase() },
-      },
-    )
-  }
+  //   await this.models.Users.update(
+  //     {
+  //       ownedTable: gameName,
+  //       joinedTable: gameName,
+  //     },
+  //     {
+  //       where: { lowerCaseUserName: userName.toLowerCase() },
+  //     },
+  //   )
+  // }
 }
