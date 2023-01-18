@@ -172,7 +172,7 @@ describe('TheModule', async () => {
       `)
     })
 
-    it('Throws an error if gamename already exists', async ({ expect }) => {
+    it('Throws an error if gameName already exists', async ({ expect }) => {
       const api = await tester.setupDB()
       const validGameName = 'validGameName'
       await api.createUser(user)

@@ -113,3 +113,9 @@ export class API {
   //   )
   // }
 }
+// const user = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+
+// const api = new API()
+// await api.initDB()
+// await api.createUser(user)
+// await api.createGame({ userName: user.userName, gameName: 'Test' })
