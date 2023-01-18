@@ -89,7 +89,7 @@ describe('TheModule', async () => {
     })
   })
 
-  describe('createGameTable', () => {
+  describe('createGame', () => {
     it('creates a gameTable and updates user with new game info', async ({ expect }) => {
       const api = await tester.setupDB()
       const validGameName = 'validGameName'
@@ -175,4 +175,68 @@ describe('TheModule', async () => {
       ).rejects.toThrowErrorMatchingInlineSnapshot('"Game name already exists"')
     })
   })
+
+  describe('joinGame and throws error if user already in game', () => {
+    it('adds user in game', async ({ expect }) => {
+      const api = await tester.setupDB()
+
+      const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+      const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
+
+      await api.createUser(user1)
+      await api.createUser(user2)
+      await api.createGame({ userName: user1.userName, gameName: 'validGameName' })
+      await api.joinGame({ userName: user2.userName, gameName: 'validGameName' })
+
+      const game = await api.models.Games.findOne({
+        where: { gameName: { [Op.iLike]: 'validgAmeName' } },
+      })
+
+      if (!game) {
+        throw new Error('Should not happen')
+      }
+
+      const dataValuesOriginal = { ...game.dataValues }
+      const { createdAt, updatedAt, ...dataValues } = dataValuesOriginal
+
+      expect(createdAt).toBeInstanceOf(Date)
+      expect(updatedAt).toBeInstanceOf(Date)
+      expect(dataValues).toMatchInlineSnapshot(`
+        {
+          "gameName": "validGameName",
+          "gameOwner": "frudd",
+          "id": 1,
+          "players": {
+            "playerFour": {
+              "roundPass": false,
+              "userName": "",
+            },
+            "playerOne": {
+              "roundPass": false,
+              "userName": "",
+            },
+            "playerThree": {
+              "roundPass": false,
+              "userName": "",
+            },
+            "playerTwo": {
+              "roundPass": false,
+              "userName": "",
+            },
+          },
+          "usersInTable": [
+            "frudd",
+            "Nani",
+          ],
+        }
+      `)
+
+      // TODO Fråga link
+      await expect(
+        api.joinGame({ userName: user2.userName, gameName: 'validGameName' }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot('"User already in game"')
+    })
+  })
 }, 1000)
+
+// @TODO add test case for lower case

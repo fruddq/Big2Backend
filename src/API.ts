@@ -73,13 +73,17 @@ export class API {
       throw new Error('Game name already exists')
     }
 
-    const usersInTable: string[] = [userName]
+    // const usersInTable: string[] = [userName]
 
     await this.models.Games.create({
       gameName,
       gameOwner: userName,
-      usersInTable,
     })
+
+    await this.models.Games.update(
+      { usersInTable: Sequelize.fn('array_append', Sequelize.col('usersInTable'), userName) },
+      { where: { gameName: { [Op.iLike]: gameName } } },
+    )
 
     await this.models.Users.update(
       {
@@ -95,6 +99,13 @@ export class API {
   // If players are already in game, frontend should redirect a player to the game
   // Player cannot access another page on app if inside a game, have to leave game first
   async joinGame({ userName, gameName }: { readonly userName: string; readonly gameName: string }) {
+    const game = await this.models.Games.findOne({
+      where: { gameName: { [Op.iLike]: gameName } },
+    })
+    if (game?.dataValues.usersInTable.includes(userName)) {
+      throw new Error('User already in game')
+    }
+
     await this.models.Users.update(
       {
         joinedTable: gameName,
@@ -104,25 +115,19 @@ export class API {
       },
     )
 
-    // await this.models.Games.update(
-    //   {
-    //     $addToSet: { usersInTable: userName },
-    //   },
-    //   {
-    //     where: {
-    //       gameName: { [Op.iLike]: gameName },
-    //     },
-    //   },
-    // )
+    await this.models.Games.update(
+      { usersInTable: Sequelize.fn('array_append', Sequelize.col('usersInTable'), userName) },
+      { where: { gameName: { [Op.iLike]: gameName } } },
+    )
   }
 }
 
-const user = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
-const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
+// const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+// const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
 
-const api = new API()
-await api.initDB()
-await api.createUser(user)
-await api.createUser(user2)
-await api.createGame({ userName: user.userName, gameName: 'Test' })
-await api.joinGame({ userName: user2.userName, gameName: 'Test' })
+// const api = new API()
+// await api.initDB()
+// await api.createUser(user1)
+// await api.createUser(user2)
+// await api.createGame({ userName: user1.userName, gameName: 'Test' })
+// await api.joinGame({ userName: user2.userName, gameName: 'Test' })
