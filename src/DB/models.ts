@@ -22,12 +22,12 @@ interface Player {
 class TableGames extends Model {
   readonly gameName!: string
   readonly gameOwner!: string
-  readonly usersInTable!: string[]
-  readonly players!: {
-    readonly playerOne: Player
-    readonly playerTwo: Player
-    readonly playerThree: Player
-    readonly playerFour: Player
+  usersInTable!: string[]
+  players!: {
+    playerOne: Player
+    playerTwo: Player
+    playerThree: Player
+    playerFour: Player
   }
   // created and updated is added from sequelize
   readonly createdAt!: string
