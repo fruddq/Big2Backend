@@ -111,23 +111,28 @@ describe('TheModule', async () => {
       expect(updatedAt).toBeInstanceOf(Date)
       expect(dataValues).toMatchInlineSnapshot(`
         {
+          "cardsThisRound": [],
           "gameName": "validGameName",
           "gameOwner": "frudd",
           "id": 1,
           "players": {
             "playerFour": {
+              "cards": [],
               "roundPass": false,
               "userName": "",
             },
             "playerOne": {
+              "cards": [],
               "roundPass": false,
               "userName": "",
             },
             "playerThree": {
+              "cards": [],
               "roundPass": false,
               "userName": "",
             },
             "playerTwo": {
+              "cards": [],
               "roundPass": false,
               "userName": "",
             },
@@ -203,23 +208,28 @@ describe('TheModule', async () => {
       expect(updatedAt).toBeInstanceOf(Date)
       expect(dataValues).toMatchInlineSnapshot(`
         {
+          "cardsThisRound": [],
           "gameName": "validGameName",
           "gameOwner": "frudd",
           "id": 1,
           "players": {
             "playerFour": {
+              "cards": [],
               "roundPass": false,
               "userName": "",
             },
             "playerOne": {
+              "cards": [],
               "roundPass": false,
               "userName": "",
             },
             "playerThree": {
+              "cards": [],
               "roundPass": false,
               "userName": "",
             },
             "playerTwo": {
+              "cards": [],
               "roundPass": false,
               "userName": "",
             },

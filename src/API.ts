@@ -120,14 +120,56 @@ export class API {
       { where: { gameName: { [Op.iLike]: gameName } } },
     )
   }
+
+  async assignPlayer({ inputNumber, userName }: { readonly inputNumber: number; readonly userName: string }) {
+    if (inputNumber < 1 || inputNumber > 4) {
+      throw new Error('Invalid input number. Please enter a number between 1-4.')
+    }
+
+    const playerFieldMap: { [key: number]: string } = {
+      1: 'playerOne',
+      2: 'playerTwo',
+      3: 'playerThree',
+      4: 'playerFour',
+    }
+    const playerField = `players.${playerFieldMap[inputNumber]}` || ''
+
+    await this.models.Games.update(
+      { [`${playerField}.userName`]: userName },
+      { where: { gameName: { [Op.iLike]: 'Test' } } },
+    )
+
+    // const game = await this.models.Games.findOne({
+    //   where: { gameName: { [Op.iLike]: 'Test' } },
+    // })
+    // console.log(game?.dataValues)
+  }
 }
 
-// const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
-// const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
+const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
 
-// const api = new API()
-// await api.initDB()
-// await api.createUser(user1)
-// await api.createUser(user2)
-// await api.createGame({ userName: user1.userName, gameName: 'Test' })
-// await api.joinGame({ userName: user2.userName, gameName: 'Test' })
+const api = new API()
+await api.initDB()
+await api.createUser(user1)
+await api.createUser(user2)
+await api.createGame({ userName: user1.userName, gameName: 'Test' })
+await api.joinGame({ userName: user2.userName, gameName: 'Test' })
+await api.assignPlayer({ inputNumber: 4, userName: user1.userName })
+
+// @TODO Check for cascading linking database columns and cascade it:
+// players: {
+//   type: DataTypes.ARRAY(DataTypes.INTEGER),
+//   allowNull: true,
+//   defaultValue: [],
+// },
+//  players: {
+//   type: DataTypes.INTEGER,
+//   allowNull: true,
+//   references: {
+//     model: 'Player',
+//     key: 'id',
+//   },
+//   onUpdate: 'CASCADE',
+//   onDelete: 'SET NULL',
+// },

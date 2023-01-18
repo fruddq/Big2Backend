@@ -16,12 +16,14 @@ class TableUser extends Model {
 interface Player {
   userName: string
   roundPass: boolean
+  cards: string[]
 }
 
 class TableGames extends Model {
   readonly gameName!: string
   readonly gameOwner!: string
   usersInTable!: string[]
+  cardsThisRound!: string[]
   players!: {
     playerOne: Player
     playerTwo: Player
@@ -95,24 +97,33 @@ export class Models {
             type: DataTypes.ARRAY(DataTypes.STRING),
             defaultValue: [],
           },
+          // will be an array of cards and not strings
+          cardsThisRound: {
+            type: DataTypes.ARRAY(DataTypes.STRING),
+            defaultValue: [],
+          },
           players: {
             type: DataTypes.JSON,
             allowNull: true,
             defaultValue: {
               playerOne: {
                 userName: '',
+                cards: [],
                 roundPass: false,
               },
               playerTwo: {
                 userName: '',
+                cards: [],
                 roundPass: false,
               },
               playerThree: {
                 userName: '',
+                cards: [],
                 roundPass: false,
               },
               playerFour: {
                 userName: '',
+                cards: [],
                 roundPass: false,
               },
             },
