@@ -25,9 +25,8 @@ describe('TheModule', async () => {
         throw new Error('Should not happen')
       }
       const dataValuesOriginal = { ...userInDB.dataValues }
-      const { changeUserInfoID, createdAt, playerID, updatedAt, ...dataValues } = dataValuesOriginal
+      const { createdAt, playerID, updatedAt, ...dataValues } = dataValuesOriginal
 
-      expect(changeUserInfoID).toHaveLength(36)
       expect(createdAt).toBeInstanceOf(Date)
       expect(playerID).toHaveLength(36)
       expect(updatedAt).toBeInstanceOf(Date)
@@ -147,15 +146,8 @@ describe('TheModule', async () => {
         throw new Error('Should not happen')
       }
       const dataValuesOriginalUser = { ...userInDB.dataValues }
-      const {
-        changeUserInfoID,
-        createdAt: createdAtUser,
-        playerID,
-        updatedAt: updatedAtUser,
-        ...dataValuesUser
-      } = dataValuesOriginalUser
+      const { createdAt: createdAtUser, playerID, updatedAt: updatedAtUser, ...dataValuesUser } = dataValuesOriginalUser
 
-      expect(changeUserInfoID).toHaveLength(36)
       expect(createdAtUser).toBeInstanceOf(Date)
       expect(playerID).toHaveLength(36)
       expect(updatedAtUser).toBeInstanceOf(Date)

@@ -14,7 +14,8 @@
     "coverage": "vitest run --coverage",
     "linux-dev": "NODE_ENV=development nodemon ./src/main.ts",
     "linux-dev-API": "NODE_ENV=development nodemon ./src/API.ts",
-    "bajs": "set NODE_ENV=development && nodemon ./src/bajs.ts"
+    "bajs": "set NODE_ENV=development && nodemon ./src/bajs.ts",
+    "docker": "docker compose up"
   },
   "keywords": [],
   "author": "Frudd",

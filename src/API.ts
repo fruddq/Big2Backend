@@ -61,7 +61,6 @@ export class API {
       password,
       email,
       playerID: uuidv4(),
-      changeUserInfoID: uuidv4(),
     })
   }
 
@@ -107,10 +106,12 @@ export class API {
 
     // await this.models.Games.update(
     //   {
-    //     usersInTable: Sequelize.fn('array_append', Sequelize.col('usersInTable'), userName),
+    //     $addToSet: { usersInTable: userName },
     //   },
     //   {
-    //     where: { gameName: { [Op.iLike]: gameName } },
+    //     where: {
+    //       gameName: { [Op.iLike]: gameName },
+    //     },
     //   },
     // )
   }
