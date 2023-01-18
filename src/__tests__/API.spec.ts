@@ -1,3 +1,4 @@
+import { Op } from 'sequelize'
 import { describe, it, vi } from 'vitest'
 import { API as TheModule } from '../API'
 
@@ -18,8 +19,9 @@ describe('TheModule', async () => {
         await api.createUser(user)
 
         const foundUser = await api.getUser(user.userName)
-        expect(foundUser).toBeTruthy()
-        console.log(foundUser)
+        if (!foundUser) {
+          throw new Error('Should not happen')
+        }
 
         const dataValuesOriginal = { ...foundUser!.dataValues }
         const { changeUserInfoID, createdAt, playerID, updatedAt, ...userSnapshot } = dataValuesOriginal
@@ -126,6 +128,97 @@ describe('TheModule', async () => {
   })
 
   describe('createGameTable', () => {
-    it('', () => {})
+    it('creates a gameTable and updates user with new game info', async ({ expect }) => {
+      const api = await tester.setupDB()
+      const validGameName = 'validGameName'
+      await api.createUser(user)
+      await api.createGame({ userName: user.userName, gameName: validGameName })
+
+      const gameInDB = await api.models.Games.findOne({
+        where: { gameName: validGameName },
+      })
+
+      if (!gameInDB) {
+        throw new Error('Should not happen')
+      }
+
+      const dataValuesOriginal = { ...gameInDB.dataValues }
+      const { createdAt, updatedAt, ...dataValues } = dataValuesOriginal
+
+      expect(createdAt).toBeInstanceOf(Date)
+      expect(updatedAt).toBeInstanceOf(Date)
+      expect(dataValues).toMatchInlineSnapshot(`
+        {
+          "gameName": "validGameName",
+          "gameOwner": "frudd",
+          "id": 1,
+          "players": {
+            "playerFour": {
+              "roundPass": false,
+              "userName": "",
+            },
+            "playerOne": {
+              "roundPass": false,
+              "userName": "",
+            },
+            "playerThree": {
+              "roundPass": false,
+              "userName": "",
+            },
+            "playerTwo": {
+              "roundPass": false,
+              "userName": "",
+            },
+          },
+          "usersInTable": [
+            "frudd",
+          ],
+        }
+      `)
+
+      const userInDB = await api.models.Users.findOne({
+        where: { lowerCaseUserName: user.userName.toLowerCase() },
+      })
+
+      if (!userInDB) {
+        throw new Error('Should not happen')
+      }
+      const dataValuesOriginalUser = { ...userInDB.dataValues }
+      const {
+        changeUserInfoID,
+        createdAt: createdAtUser,
+        playerID,
+        updatedAt: updatedAtUser,
+        ...dataValuesUser
+      } = dataValuesOriginalUser
+
+      expect(changeUserInfoID).toHaveLength(36)
+      expect(createdAtUser).toBeInstanceOf(Date)
+      expect(playerID).toHaveLength(36)
+      expect(updatedAtUser).toBeInstanceOf(Date)
+
+      expect(dataValuesUser).toMatchInlineSnapshot(`
+        {
+          "email": "frudd@example.com",
+          "id": 1,
+          "joinedTable": "validGameName",
+          "lowerCaseUserName": "frudd",
+          "ownedTable": "validGameName",
+          "password": "password",
+          "userName": "frudd",
+        }
+      `)
+    })
+
+    it('Throws an error if gamename already exists', async ({ expect }) => {
+      const api = await tester.setupDB()
+      const validGameName = 'validGameName'
+      await api.createUser(user)
+      await api.createGame({ userName: user.userName, gameName: validGameName })
+
+      await expect(
+        api.createGame({ userName: 'anotherUser', gameName: validGameName }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot('"GameName already exists"')
+    })
   })
 }, 1000)

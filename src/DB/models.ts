@@ -39,7 +39,7 @@ export class Models {
   // Should be a loop with the right types after game completion
   static initDB = (DB: Sequelize) => ({
     Users: Models.tables.Users(DB),
-    GameTables: Models.tables.TableGames(DB),
+    Games: Models.tables.Games(DB),
   })
 
   // want the KEY(User in this case) and the value to return to API
@@ -90,7 +90,7 @@ export class Models {
       return TableUser
     },
 
-    TableGames: (sequelize: Sequelize) => {
+    Games: (sequelize: Sequelize) => {
       TableGames.init(
         {
           gameName: {

@@ -1,4 +1,4 @@
-import { Sequelize } from 'sequelize'
+import { Sequelize, Op } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
@@ -40,6 +40,7 @@ export class API {
   // clear them every night and warn in frontend before, what happens if they do not register
   // also delete users that havent logged in in 100 days
 
+  // @TODO maybe delete this function and just add the code to createUser
   async getUser(userName: string) {
     const lowerCaseUserName = userName.toLowerCase() //checking db for lowercase will result in case sensetive username check, Frudd and frudd is counted as duplicate
     const existingUser = await this.models.Users.findOne({ where: { lowerCaseUserName } })
@@ -70,56 +71,51 @@ export class API {
   }
 
   // @TODO must also update User property joined/owned table
-  async createGameTable({ userName, gameName }: { readonly userName: string; readonly gameName: string }) {
+  async createGame({ userName, gameName }: { readonly userName: string; readonly gameName: string }) {
+    const gameExists = await this.models.Games.findOne({
+      where: { gameName: { [Op.iLike]: gameName } },
+    })
+
+    if (gameExists) {
+      throw new Error('Game mame already exists')
+    }
+
     const usersInTable: string[] = [userName]
 
-    await this.models.GameTables.create({
+    await this.models.Games.create({
       gameName,
       gameOwner: userName,
       usersInTable,
     })
 
-    const existingUser = await this.getUser(userName)
-    // @TODO check if u really need this, this will never happen
-    if (!existingUser) {
-      throw new Error(`User with username ${userName} not found`)
-    }
+    await this.models.Users.update(
+      {
+        ownedTable: gameName,
+        joinedTable: gameName,
+      },
+      {
+        where: { lowerCaseUserName: userName.toLowerCase() },
+      },
+    )
+  }
 
-    existingUser.ownedTable = gameName
-    existingUser.joinedTable = gameName
+  async joinGame({ userName, gameName }: { readonly userName: string; readonly gameName: string }) {
+    const usersInTable: string[] = [userName]
 
-    await existingUser.save()
+    await this.models.Games.create({
+      gameName,
+      gameOwner: userName,
+      usersInTable,
+    })
+
+    await this.models.Users.update(
+      {
+        ownedTable: gameName,
+        joinedTable: gameName,
+      },
+      {
+        where: { lowerCaseUserName: userName.toLowerCase() },
+      },
+    )
   }
 }
-
-// const api = new API()
-// await api.initDB()
-// await api.createUser({ userName: 'testUser', password: 'testPassword', email: 'test@gmail.com' })
-
-// static async createTable() {
-//   try {
-//     const GameTable = sequelize.define("GameTable", {
-//       tableName: {
-//         type: DataTypes.STRING,
-//         allowNull: false,
-//       },
-//       tableID: {
-//         type: DataTypes.STRING,
-//         allowNull: false,
-//       },
-//       tableOwner: {
-//         type: DataTypes.STRING,
-//         allowNull: false,
-//       },
-//     })
-//     // @TODO Ensure that data cannot be overwritten in DB,
-//     // otherwise tables with same name or ID will update/overwrite.
-
-//     // const rowFound = await GameTable.findOne({ where: { tableID: "123" } })
-//     // if (rowFound) {
-//     //   await GameTable.create({ tableName: "Jane", tableID: "123", tableOwner: "Frudd" })
-//     // }
-//   } catch (err) {
-//     console.error(err)
-//   }
-// }
