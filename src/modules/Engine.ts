@@ -1,4 +1,4 @@
-import { Card, defaults, PlayerCards } from './PlayerCards.js'
+import { defaults, PlayerCards } from './PlayerCards.js'
 
 export class Engine {
   playersCards: {
@@ -42,7 +42,3 @@ export class Engine {
     return { playerOne, playerTwo, playerThree, playerFour }
   }
 }
-
-const engine = new Engine()
-
-console.log(engine.playersCards)

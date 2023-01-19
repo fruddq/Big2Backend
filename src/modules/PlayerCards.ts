@@ -8,7 +8,7 @@ export const defaults = {
 type ValidValue = typeof defaults.values[number]
 type ValidSuit = typeof defaults.suits[number]
 
-export type Card = {
+type Card = {
   value: ValidValue
   suit: ValidSuit
 }

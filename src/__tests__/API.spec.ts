@@ -119,24 +119,28 @@ describe('TheModule', async () => {
           "players": {
             "playerFour": {
               "cards": [],
+              "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
             },
             "playerOne": {
               "cards": [],
+              "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
             },
             "playerThree": {
               "cards": [],
+              "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
             },
             "playerTwo": {
               "cards": [],
+              "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
@@ -219,24 +223,28 @@ describe('TheModule', async () => {
           "players": {
             "playerFour": {
               "cards": [],
+              "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
             },
             "playerOne": {
               "cards": [],
+              "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
             },
             "playerThree": {
               "cards": [],
+              "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
             },
             "playerTwo": {
               "cards": [],
+              "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
@@ -302,24 +310,28 @@ describe('TheModule', async () => {
           "players": {
             "playerFour": {
               "cards": [],
+              "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "Olof",
             },
             "playerOne": {
               "cards": [],
+              "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "frudd",
             },
             "playerThree": {
               "cards": [],
+              "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "Jens",
             },
             "playerTwo": {
               "cards": [],
+              "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "Nani",
