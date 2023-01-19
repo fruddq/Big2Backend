@@ -161,7 +161,7 @@ export class API {
     await game.set(`${playerField}.userName`, userName).save()
   }
 
-  // @TODO find the player who holds 3 of diamonds and set property playerTurn = true
+  //start game needs to default all the values of the game thats affected.
   async startGame(gameName: string) {
     const game = await this.models.Games.findOne({
       where: { gameName: { [Op.iLike]: gameName } },
@@ -206,6 +206,28 @@ export class API {
       await game.set('players.playerFour.playerTurn', true).save()
     }
   }
+
+  // play cards function
+  // should update cardsThisround property of game with played cards, if tha play is valid
+  // Should remove the cards played from the array
+
+  // assign a property playersWon with default value 0 to the game
+  // after each play check if array is empty, then the player has won,
+  // get the playerWon value
+  // Update score by adding playerScore[playerOne]; const placeScores = [10, 5, -5, -10];
+  // add 1 to playerScore, update the playerWon value in DB
+
+  // should check when playerWon = 2 then the game is over cuz 3 ppl have no cards left
+  // then it should update the final score -10 to the looser
+  // it should also update playerWon to 3
+  // then frontend can check if playerWon = 3 then it knows to block all buttons
+  // and also render a new button to play another round
+
+  // pass function
+  // should update property roundPass to true
+  // should check if three ppl have passed
+  // should also check whos turn its next and set it to true
+  // param is playernumber as a string for instance 'playerOne'
 }
 
 const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
@@ -229,6 +251,7 @@ await api.assignPlayer({ inputNumber: 2, userName: user2.userName, gameName: 'Bo
 await api.assignPlayer({ inputNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
 await api.assignPlayer({ inputNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
 await api.startGame('BorisGame')
+
 // @TODO Check for cascading linking database columns and cascade it:
 // players: {
 //   type: DataTypes.ARRAY(DataTypes.INTEGER),
