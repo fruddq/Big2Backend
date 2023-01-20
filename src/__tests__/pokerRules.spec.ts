@@ -8,15 +8,15 @@ import {
   getStraightValue,
 } from '../modules/pokerRules'
 
-describe('pokerRulesFunctions', () => {
-  describe('checkPair', () => {
-    it('returns true for pairs', ({ expect }) => {
+describe.concurrent('pokerRulesFunctions', () => {
+  describe.concurrent('checkPair', () => {
+    it.concurrent('returns true for pairs', ({ expect }) => {
       for (let i = 1; i < 14; i++) {
         expect(checkPair([i, i])).toBe(true)
       }
     })
 
-    it('returns false when there is no pair', ({ expect }) => {
+    it.concurrent('returns false when there is no pair', ({ expect }) => {
       ;[[1], [1, 2], [2, 3], [1, 1, 1], [7, 7, 7, 7], [10, 10, 10, 10, 11], [10, 10, 10, 10, 11, 12]].forEach(
         (testValue) => {
           expect(checkPair(testValue)).toBe(false)
@@ -25,14 +25,14 @@ describe('pokerRulesFunctions', () => {
     })
   })
 
-  describe('checkTripple', () => {
-    it('returns true for tripples', ({ expect }) => {
+  describe.concurrent('checkTripple', () => {
+    it.concurrent('returns true for tripples', ({ expect }) => {
       for (let i = 1; i < 14; i++) {
         expect(checktripple([i, i, i])).toBe(true)
       }
     })
 
-    it('returns false when there is no tripple', ({ expect }) => {
+    it.concurrent('returns false when there is no tripple', ({ expect }) => {
       ;[
         [1],
         [1, 1],
@@ -48,8 +48,8 @@ describe('pokerRulesFunctions', () => {
     })
   })
 
-  describe('getStraightValue', () => {
-    it('returns correct straight value', ({ expect }) => {
+  describe.concurrent('getStraightValue', () => {
+    it.concurrent('returns correct straight value', ({ expect }) => {
       const suits = [1, 2, 3, 5]
       for (let i = 1; i < 10; i++) {
         const array = [i, i + 1, i + 2, i + 3, i + 4]
@@ -63,7 +63,7 @@ describe('pokerRulesFunctions', () => {
       })
     })
 
-    it('returns 0 when there is no straight', ({ expect }) => {
+    it.concurrent('returns 0 when there is no straight', ({ expect }) => {
       ;[
         [1, 2, 3, 4, 6],
         [1, 1, 3, 4, 6],
@@ -79,8 +79,8 @@ describe('pokerRulesFunctions', () => {
     })
   })
 
-  describe('getFlushValue', () => {
-    it('returns correct flush value', ({ expect }) => {
+  describe.concurrent('getFlushValue', () => {
+    it.concurrent('returns correct flush value', ({ expect }) => {
       ;[1, 2, 3, 5].forEach((suit) => {
         expect(getFlushValue([5, 10, 11, 12, 13], [suit, suit, suit, suit, suit])).toBe(suit * 100 + 13)
 
@@ -90,7 +90,7 @@ describe('pokerRulesFunctions', () => {
       })
     })
 
-    it('returns 0 when there is no flush', ({ expect }) => {
+    it.concurrent('returns 0 when there is no flush', ({ expect }) => {
       ;[
         [1, 2, 3, 4, 5],
         [1, 1, 3, 4, 6],
@@ -115,8 +115,8 @@ describe('pokerRulesFunctions', () => {
     })
   })
 
-  describe('getFullHouseValue', () => {
-    it('returns correct full house value', ({ expect }) => {
+  describe.concurrent('getFullHouseValue', () => {
+    it.concurrent('returns correct full house value', ({ expect }) => {
       for (let i = 3; i < 13; i++) {
         expect(getFullHouseValue([i, i, i, i + 1, i + 1])).toBe(600 + i)
         expect(getFullHouseValue([i - 1, i - 1, i, i, i])).toBe(600 + i)
@@ -128,7 +128,7 @@ describe('pokerRulesFunctions', () => {
       expect(getFullHouseValue([1, 1, 2, 2, 2])).toBe(615)
     })
 
-    it('returns 0 when there is no fullHouse', ({ expect }) => {
+    it.concurrent('returns 0 when there is no fullHouse', ({ expect }) => {
       ;[
         [1, 1, 1, 4, 6],
         [1, 1, 3, 3, 6],
@@ -144,8 +144,8 @@ describe('pokerRulesFunctions', () => {
     })
   })
 
-  describe('getFourOfAKindValue', () => {
-    it('returns correct four of a kind value', ({ expect }) => {
+  describe.concurrent('getFourOfAKindValue', () => {
+    it.concurrent('returns correct four of a kind value', ({ expect }) => {
       for (let i = 3; i < 13; i++) {
         expect(getFourOfAKindValue([i, i, i, i, i + 1])).toBe(700 + i)
         expect(getFourOfAKindValue([i - 1, i, i, i, i])).toBe(700 + i)
@@ -157,7 +157,7 @@ describe('pokerRulesFunctions', () => {
       expect(getFourOfAKindValue([1, 2, 2, 2, 2])).toBe(715)
     })
 
-    it('returns 0 when there is no four of a kind', ({ expect }) => {
+    it.concurrent('returns 0 when there is no four of a kind', ({ expect }) => {
       ;[
         [1, 1, 1, 4, 6],
         [1, 1, 3, 3, 6],

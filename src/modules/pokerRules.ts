@@ -5,25 +5,6 @@ export const checkPair = (valuesArray: ValidValue[]) => valuesArray.length === 2
 export const checktripple = (valuesArray: ValidValue[]) =>
   valuesArray.length === 3 && valuesArray[0] === valuesArray[1] && valuesArray[1] === valuesArray[2]
 
-// export const getStraightValue = (valuesArray: ValidValue[], suitsArray: ValidSuit[]) => {
-//     if (valuesArray.length !== 5 || suitsArray.length !== 5) {
-//       return 0
-//     }
-
-//   const suitOfHighestCard = suitsArray[valuesArray.indexOf(Math.max(...valuesArray))]
-
-//   const valuesArrayCopy = [...valuesArray]
-//   if (valuesArrayCopy.includes(1)) {
-//     valuesArrayCopy[valuesArrayCopy.indexOf(1)] = 14
-//   }
-//   valuesArrayCopy.sort((a, b) => a - b)
-
-//   const straight = valuesArrayCopy.every((value, index) => {
-//     return index < 4 ? valuesArrayCopy[index + 1]! - value === 1 : true
-//   })
-//   return straight ? valuesArrayCopy[4]! * 5 + suitOfHighestCard! : 0
-// }
-
 export const getStraightValue = (valuesArray: ValidValue[], suitsArray: ValidSuit[]) => {
   let suitOfHighestCard = suitsArray[valuesArray.indexOf(Math.max(...valuesArray))]
 
