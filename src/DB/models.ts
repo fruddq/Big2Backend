@@ -15,10 +15,9 @@ class TableUser extends Model {
   readonly updatedAt!: string
 }
 
-interface Player {
+export interface Player {
   userName: string
   roundPass: boolean
-  // cards: PlayerCards
   score: number
   playerTurn: boolean
 }

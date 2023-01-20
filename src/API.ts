@@ -2,11 +2,12 @@ import { Sequelize, Op } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
-import { Models as ModelsDB } from './DB/models.js'
+import { Models as ModelsDB, Player } from './DB/models.js'
 import { validateUser } from './modules/validateUser.js'
 import { isTest } from './config.js'
 import { Engine } from './modules/Engine.js'
 import { isStartingPlayer } from './modules/isStartingPlayer.js'
+import type { PlayerCards } from './modules/PlayerCards.js'
 
 export class API {
   DB: Sequelize
@@ -215,10 +216,27 @@ export class API {
     if (isStartingPlayer(playerFourCards)) {
       await game.set('players.playerFour.playerTurn', true).save()
     }
-  }
 
+    // testing
+    // const p1 = await this.models.Users.findOne({
+    //   where: { userName: { [Op.iLike]: playerOne } },
+    // })
+    // const p2 = await this.models.Users.findOne({
+    //   where: { userName: { [Op.iLike]: playerTwo } },
+    // })
+    // const p3 = await this.models.Users.findOne({
+    //   where: { userName: { [Op.iLike]: playerThree } },
+    // })
+    // const p4 = await this.models.Users.findOne({
+    //   where: { userName: { [Op.iLike]: playerFour } },
+    // })
+
+    // console.log(p1?.dataValues)
+    // stop testing
+  }
   // play cards function
-  // should update cardsThisround property of game with played cards, if tha play is valid
+  // check if the play is valid? Frontend ?
+  // should update cardsThisround property of game with played cards
   // Should remove the cards played from the array
 
   // assign a property playersWon with default value 0 to the game
@@ -238,6 +256,42 @@ export class API {
   //
 
   // should make playerturn false and nextplayerturn true, will have to check if roundpass
+  async playCards({
+    cards,
+    gameName,
+    userName,
+  }: { readonly cards: PlayerCards; readonly gameName: string; readonly userName: string }) {
+    const game = await this.models.Games.findOne({
+      where: { gameName: { [Op.iLike]: gameName } },
+    })
+    if (!game) {
+      throw new Error('Game not found, should not happen')
+    }
+
+    const player = (Object.values(game?.dataValues.players) as Player[]).find((player) => player.userName === userName)
+
+    if (!player) {
+      throw new Error('Player not in current game')
+    }
+    if (player.roundPass) {
+      throw new Error('Player has already passed this round')
+    }
+    if (!player.playerTurn) {
+      throw new Error('Not players turn')
+    }
+
+    // if user has passed, throw error
+    // if users playerturn false throw error
+
+    // first play must contain three of diamonds
+    // that means the game must save a property called firstPlay in game
+    // this will be a boolean starting as false
+    // at start of game this will be set as true
+    // after firstplay this will be changed back to false
+    console.log(game?.dataValues.players)
+    console.log(player)
+  }
+
   // leave seatFN,
   // set seat to empty
   // Check gamestarted when leaving seat,
@@ -253,31 +307,54 @@ export class API {
   // param is playernumber as a string for instance 'playerOne'
 
   // getCards should just return the players cards so that they can be rendered
+  // need authentication
+  async getCards({ userName }: { readonly userName: string }) {
+    const result = await this.models.Users.findOne({
+      where: { userName: { [Op.iLike]: userName } },
+    })
+    if (!result) {
+      throw new Error('Cant find player, should not happen')
+    }
+    return result.dataValues.cards
+  }
 }
 
-// const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
-// const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
-// const user3 = { userName: 'Jens', password: 'password', email: 'jonas@example.com' }
-// const user4 = { userName: 'Olof', password: 'password', email: 'jonas@example.com' }
+const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+const user2 = { userName: 'Nani', password: 'password', email: 'jonas1@example.com' }
+const user3 = { userName: 'Jens', password: 'password', email: 'jonas2@example.com' }
+const user4 = { userName: 'Olof', password: 'password', email: 'jonas3@example.com' }
 // // const user5 = { userName: 'Jonas', password: 'password', email: 'jonas@example.com' }
 
-// // const api = new API()
-// // await api.initDB()
-// // await api.createUser(user1)
-// // await api.createUser(user2)
-// // await api.createUser(user3)
-// // await api.createUser(user4)
-// // await api.createGame({ userName: user1.userName, gameName: 'BorisGame' })
+const api = new API()
+await api.initDB()
 
-// // await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
-// // await api.joinGame({ userName: user3.userName, gameName: 'BorisGame' })
-// // await api.joinGame({ userName: user4.userName, gameName: 'BorisGame' })
+await api.createUser(user1)
+await api.createUser(user2)
+await api.createUser(user3)
+await api.createUser(user4)
+await api.createGame({ userName: user1.userName, gameName: 'BorisGame', pointMultiplier: 10 })
 
-// // await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
-// // await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
-// // await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
-// // await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
-// // await api.startGame('BorisGame')
+await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
+await api.joinGame({ userName: user3.userName, gameName: 'BorisGame' })
+await api.joinGame({ userName: user4.userName, gameName: 'BorisGame' })
+
+await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
+
+await api.startGame('BorisGame')
+
+const testCards = await api.getCards({ userName: 'frudd' })
+
+console.log(testCards)
+await api.playCards({
+  cards: [testCards[0]],
+  gameName: 'BorisGame',
+  userName: user1.userName,
+})
+
+// await api.playCards()
 
 // @TODO Check for cascading linking database columns and cascade it:
 // players: {
