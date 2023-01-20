@@ -35,6 +35,7 @@ class TableGames extends Model {
     playerFour: Player
   }
   gameStarted!: boolean
+  pointMultiplier!: number
   // created and updated is added from sequelize
   readonly createdAt!: string
   readonly updatedAt!: string
@@ -145,6 +146,10 @@ export class Models {
           gameStarted: {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
+          },
+          pointMultiplier: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
           },
         },
         { sequelize },

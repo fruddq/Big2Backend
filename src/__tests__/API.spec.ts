@@ -103,7 +103,7 @@ describe('TheModule', async () => {
       const api = await tester.setupDB()
       const validGameName = 'validGameName'
       await api.createUser(user)
-      await api.createGame({ userName: user.userName, gameName: validGameName })
+      await api.createGame({ userName: user.userName, gameName: validGameName, pointMultiplier: 5 })
 
       const gameInDB = await api.models.Games.findOne({
         where: { gameName: validGameName },
@@ -151,6 +151,7 @@ describe('TheModule', async () => {
               "userName": "",
             },
           },
+          "pointMultiplier": 5,
           "usersInTable": [
             "frudd",
           ],
@@ -188,10 +189,10 @@ describe('TheModule', async () => {
       const api = await tester.setupDB()
       const validGameName = 'validGameName'
       await api.createUser(user)
-      await api.createGame({ userName: user.userName, gameName: validGameName })
+      await api.createGame({ userName: user.userName, gameName: validGameName, pointMultiplier: 10 })
 
       await expect(
-        api.createGame({ userName: 'anotherUser', gameName: validGameName }),
+        api.createGame({ userName: 'anotherUser', gameName: validGameName, pointMultiplier: 20 }),
       ).rejects.toThrowErrorMatchingInlineSnapshot('"Game name already exists"')
     })
   })
@@ -205,7 +206,7 @@ describe('TheModule', async () => {
 
       await api.createUser(user1)
       await api.createUser(user2)
-      await api.createGame({ userName: user1.userName, gameName: 'validGameName' })
+      await api.createGame({ userName: user1.userName, gameName: 'validGameName', pointMultiplier: 10 })
       await api.joinGame({ userName: user2.userName, gameName: 'validGameName' })
 
       const game = await api.models.Games.findOne({
@@ -253,6 +254,7 @@ describe('TheModule', async () => {
               "userName": "",
             },
           },
+          "pointMultiplier": 10,
           "usersInTable": [
             "frudd",
             "Nani",
@@ -281,7 +283,7 @@ describe('TheModule', async () => {
       await api.createUser(user4)
       await api.createUser(user5)
 
-      await api.createGame({ userName: user1.userName, gameName: 'validGameName' })
+      await api.createGame({ userName: user1.userName, gameName: 'validGameName', pointMultiplier: 10 })
 
       await api.joinGame({ userName: user2.userName, gameName: 'validGameName' })
       await api.joinGame({ userName: user3.userName, gameName: 'validGameName' })
@@ -337,6 +339,7 @@ describe('TheModule', async () => {
               "userName": "Nani",
             },
           },
+          "pointMultiplier": 10,
           "usersInTable": [
             "frudd",
             "Nani",
@@ -356,7 +359,7 @@ describe('TheModule', async () => {
       await api.createUser(user4)
       await api.createUser(user5)
 
-      await api.createGame({ userName: user1.userName, gameName: 'validGameName' })
+      await api.createGame({ userName: user1.userName, gameName: 'validGameName', pointMultiplier: 10 })
 
       await api.joinGame({ userName: user2.userName, gameName: 'validGameName' })
       await api.joinGame({ userName: user3.userName, gameName: 'validGameName' })
@@ -376,7 +379,7 @@ describe('TheModule', async () => {
       const api = await tester.setupDB()
 
       await api.createUser(user1)
-      await api.createGame({ userName: user1.userName, gameName: 'validGameName' })
+      await api.createGame({ userName: user1.userName, gameName: 'validGameName', pointMultiplier: 10 })
       await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'validGameName' })
       ;[-1000000, 0, 5, 10, 10000].forEach(async (number) => {
         await expect(

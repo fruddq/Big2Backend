@@ -73,8 +73,11 @@ export class API {
     })
   }
 
-  // should recieve points param. points need to be saved in db
-  async createGame({ userName, gameName }: { readonly userName: string; readonly gameName: string }) {
+  async createGame({
+    userName,
+    gameName,
+    pointMultiplier,
+  }: { readonly userName: string; readonly gameName: string; readonly pointMultiplier: number }) {
     const gameExists = await this.models.Games.findOne({
       where: { gameName: { [Op.iLike]: gameName } },
     })
@@ -86,6 +89,7 @@ export class API {
     await this.models.Games.create({
       gameName,
       gameOwner: userName,
+      pointMultiplier,
     })
 
     await this.models.Games.update(
@@ -133,11 +137,11 @@ export class API {
   }
 
   async assignPlayer({
-    seatNumber: inputNumber,
+    seatNumber,
     userName,
     gameName,
   }: { readonly seatNumber: number; readonly userName: string; readonly gameName: string }) {
-    if (inputNumber < 1 || inputNumber > 4) {
+    if (seatNumber < 1 || seatNumber > 4) {
       throw new Error('Invalid input number. Please enter a number between 1-4.')
     }
 
@@ -147,7 +151,7 @@ export class API {
       3: 'playerThree',
       4: 'playerFour',
     }
-    const playerField = `players.${playerFieldMap[inputNumber]}`
+    const playerField = `players.${playerFieldMap[seatNumber]}`
 
     const game = await this.models.Games.findOne({
       where: { gameName: { [Op.iLike]: gameName } },
@@ -157,7 +161,7 @@ export class API {
     }
 
     const players = game.dataValues.players
-    const seat = playerFieldMap[inputNumber]
+    const seat = playerFieldMap[seatNumber]
     if (seat) {
       if (players[seat].userName !== '') {
         throw new Error('Seat taken, choose another position')
@@ -198,17 +202,6 @@ export class API {
     await this.models.Users.update({ cards: playerTwoCards }, { where: { userName: { [Op.eq]: playerTwo } } })
     await this.models.Users.update({ cards: playerThreeCards }, { where: { userName: { [Op.eq]: playerThree } } })
     await this.models.Users.update({ cards: playerFourCards }, { where: { userName: { [Op.eq]: playerFour } } })
-
-    // SLOWER CODE FOR 4-5 players, dont run loop
-
-    // await Promise.all(
-    //   playerUserNames.map((userName: string, i) =>
-    //     this.models.Users.update(
-    //       { cards: [playerOneCards, playerTwoCards, playerThreeCards, playerFourCards][i] },
-    //       { where: { userName: { [Op.eq]: userName } } },
-    //     ),
-    //   ),
-    // )
 
     if (isStartingPlayer(playerOneCards)) {
       await game.set('players.playerOne.playerTurn', true).save()
