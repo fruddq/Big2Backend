@@ -66,6 +66,7 @@ export class API {
     })
   }
 
+  // should recieve points param. points need to be saved in db
   async createGame({ userName, gameName }: { readonly userName: string; readonly gameName: string }) {
     const gameExists = await this.models.Games.findOne({
       where: { gameName: { [Op.iLike]: gameName } },
@@ -225,6 +226,7 @@ export class API {
   // get the playerWon value
   // Update score by adding playerScore[playerOne]; const placeScores = [10, 5, -5, -10];
   // add 1 to playerScore, update the playerWon value in DB
+  // should use the pointsvalue in gameDB to calc player sores
 
   // should check when playerWon = 2 then the game is over cuz 3 ppl have no cards left
   // then it should update the final score -10 to the looser
