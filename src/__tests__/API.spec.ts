@@ -1,4 +1,3 @@
-import exp from 'constants'
 import { Op } from 'sequelize'
 import { describe, expect, it, vi } from 'vitest'
 import { API as TheModule } from '../API'
@@ -116,6 +115,7 @@ describe('TheModule', async () => {
           "cardsThisRound": [],
           "gameName": "validGameName",
           "gameOwner": "frudd",
+          "gameStarted": false,
           "id": 1,
           "players": {
             "playerFour": {
@@ -217,6 +217,7 @@ describe('TheModule', async () => {
           "cardsThisRound": [],
           "gameName": "validGameName",
           "gameOwner": "frudd",
+          "gameStarted": false,
           "id": 1,
           "players": {
             "playerFour": {
@@ -300,6 +301,7 @@ describe('TheModule', async () => {
           "cardsThisRound": [],
           "gameName": "validGameName",
           "gameOwner": "frudd",
+          "gameStarted": false,
           "id": 1,
           "players": {
             "playerFour": {

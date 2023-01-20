@@ -160,54 +160,70 @@ export class API {
   }
 
   // start game needs to default all the values of the game thats affected.
-  // cards should be saved in user instead of game, otherwise, in order to access users cards
-  // user needs to access the game which holds all cards
-  // async startGame(gameName: string) {
-  //   const game = await this.models.Games.findOne({
-  //     where: { gameName: { [Op.iLike]: gameName } },
-  //   })
+  // cards dont need to be dafaulted as it replaces all players cards in their seats
 
-  //   if (!game) {
-  //     throw new Error('Game not found, should not happen')
-  //   }
+  async startGame(gameName: string) {
+    const game = await this.models.Games.findOne({
+      where: { gameName: { [Op.iLike]: gameName } },
+    })
 
-  //   const { players }: { players: typeof game } = game.dataValues
+    if (!game) {
+      throw new Error('Game not found, should not happen')
+    }
 
-  //   for (const player of Object.values(players)) {
-  //     if (player.userName === '') {
-  //       throw new Error('Wait until all seats are filled')
-  //     }
-  //   }
+    const { players }: { players: typeof game } = game.dataValues
 
-  //   const engine = new Engine()
+    for (const player of Object.values(players)) {
+      if (player.userName === '') {
+        throw new Error('Wait until all seats are filled')
+      }
+    }
 
-  //   const {
-  //     playerOne: playerOneCards,
-  //     playerTwo: playerTwoCards,
-  //     playerThree: playerThreeCards,
-  //     playerFour: playerFourCards,
-  //   } = engine.playersCards
+    const engine = new Engine()
 
-  //   await game.set('players.playerOne.cards', playerOneCards).save()
-  //   await game.set('players.playerTwo.cards', playerTwoCards).save()
-  //   await game.set('players.playerThree.cards', playerThreeCards).save()
-  //   await game.set('players.playerFour.cards', playerFourCards).save()
+    const { playerOneCards, playerTwoCards, playerThreeCards, playerFourCards } = engine.playersCards
 
-  //   if (isStartingPlayer(playerOneCards)) {
-  //     await game.set('players.playerOne.playerTurn', true).save()
-  //   }
-  //   if (isStartingPlayer(playerTwoCards)) {
-  //     await game.set('players.playerTwo.playerTurn', true).save()
-  //   }
-  //   if (isStartingPlayer(playerThreeCards)) {
-  //     await game.set('players.playerThree.playerTurn', true).save()
-  //   }
-  //   if (isStartingPlayer(playerFourCards)) {
-  //     await game.set('players.playerFour.playerTurn', true).save()
-  //   }
-  // }
+    const [{ userName: playerOne }, { userName: playerTwo }, { userName: playerThree }, { userName: playerFour }] =
+      Object.values(players)
 
-  // leave seat, what happens if player tries to leave seat during game?
+    await this.models.Users.update({ cards: playerOneCards }, { where: { userName: { [Op.eq]: playerOne } } })
+    await this.models.Users.update({ cards: playerTwoCards }, { where: { userName: { [Op.eq]: playerTwo } } })
+    await this.models.Users.update({ cards: playerThreeCards }, { where: { userName: { [Op.eq]: playerThree } } })
+    await this.models.Users.update({ cards: playerFourCards }, { where: { userName: { [Op.eq]: playerFour } } })
+
+    // SLOWER CODE FOR 4-5 players, dont run loop
+
+    // await Promise.all(
+    //   playerUserNames.map((userName: string, i) =>
+    //     this.models.Users.update(
+    //       { cards: [playerOneCards, playerTwoCards, playerThreeCards, playerFourCards][i] },
+    //       { where: { userName: { [Op.eq]: userName } } },
+    //     ),
+    //   ),
+    // )
+
+    // const test1 = await this.models.Users.findOne({ where: { userName: { [Op.eq]: playerOne } } })
+    // const test2 = await this.models.Users.findOne({ where: { userName: { [Op.eq]: playerTwo } } })
+    // const test3 = await this.models.Users.findOne({ where: { userName: { [Op.eq]: playerThree } } })
+    // const test4 = await this.models.Users.findOne({ where: { userName: { [Op.eq]: playerFour } } })
+    // console.log(test1?.dataValues)
+    // console.log(test2?.dataValues)
+    // console.log(test3?.dataValues)
+    // console.log(test4?.dataValues)
+
+    if (isStartingPlayer(playerOneCards)) {
+      await game.set('players.playerOne.playerTurn', true).save()
+    }
+    if (isStartingPlayer(playerTwoCards)) {
+      await game.set('players.playerTwo.playerTurn', true).save()
+    }
+    if (isStartingPlayer(playerThreeCards)) {
+      await game.set('players.playerThree.playerTurn', true).save()
+    }
+    if (isStartingPlayer(playerFourCards)) {
+      await game.set('players.playerFour.playerTurn', true).save()
+    }
+  }
 
   // play cards function
   // should update cardsThisround property of game with played cards, if tha play is valid
@@ -222,10 +238,20 @@ export class API {
   // should check when playerWon = 2 then the game is over cuz 3 ppl have no cards left
   // then it should update the final score -10 to the looser
   // it should also update playerWon to 3
-  // then frontend can check if playerWon = 3 then it knows to block all buttons
+  // then frontend can check if playerWon = 3 then game is over
+  // then it knows to block all buttons
   // and also render a new button to play another round
+  // also update gamestarted to false. this will make it easier for leave seat
+  //
 
   // should make playerturn false and nextplayerturn true, will have to check if roundpass
+  // leave seatFN,
+  // set seat to empty
+  // Check gamestarted when leaving seat,
+  // if game not started:
+  // if game started and user leaves:
+  // set cards to empty,
+  // enable a way to calc score and think about how players will continue
 
   // pass function
   // should update property roundPass to true
@@ -246,6 +272,8 @@ const api = new API()
 await api.initDB()
 await api.createUser(user1)
 await api.createUser(user2)
+await api.createUser(user3)
+await api.createUser(user4)
 await api.createGame({ userName: user1.userName, gameName: 'BorisGame' })
 
 await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
@@ -256,7 +284,7 @@ await api.assignPlayer({ inputNumber: 1, userName: user1.userName, gameName: 'Bo
 await api.assignPlayer({ inputNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
 await api.assignPlayer({ inputNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
 await api.assignPlayer({ inputNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
-// await api.startGame('BorisGame')
+await api.startGame('BorisGame')
 
 // @TODO Check for cascading linking database columns and cascade it:
 // players: {

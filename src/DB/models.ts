@@ -34,6 +34,7 @@ class TableGames extends Model {
     playerThree: Player
     playerFour: Player
   }
+  gameStarted!: boolean
   // created and updated is added from sequelize
   readonly createdAt!: string
   readonly updatedAt!: string
@@ -117,33 +118,33 @@ export class Models {
             defaultValue: {
               playerOne: {
                 userName: '',
-                // cards: [],
                 roundPass: false,
                 score: 0,
                 playerTurn: false,
               },
               playerTwo: {
                 userName: '',
-                // cards: [],
                 roundPass: false,
                 score: 0,
                 playerTurn: false,
               },
               playerThree: {
                 userName: '',
-                // cards: [],
                 roundPass: false,
                 score: 0,
                 playerTurn: false,
               },
               playerFour: {
                 userName: '',
-                // cards: [],
                 roundPass: false,
                 score: 0,
                 playerTurn: false,
               },
             },
+          },
+          gameStarted: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
           },
         },
         { sequelize },
