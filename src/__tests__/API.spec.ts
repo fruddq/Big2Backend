@@ -48,7 +48,7 @@ describe('TheModule', async () => {
       const api = await tester.setupDB()
       await api.createUser({ userName: 'testUser', password: 'password', email: 'frudd@example.com' })
       await expect(
-        api.createUser({ userName: 'testUser', password: 'password', email: 'frudd@example.com' }),
+        api.createUser({ userName: 'testUser', password: 'password', email: 'Jens@example.com' }),
       ).rejects.toThrowErrorMatchingInlineSnapshot('"User with that name already exists"')
     })
 
@@ -57,10 +57,10 @@ describe('TheModule', async () => {
       const spy = vi.spyOn(api.validators, 'user')
 
       await expect(
-        api.createUser({ userName: 'Jens', password: 'password', email: 'frudd@example.com' }),
+        api.createUser({ userName: 'Jens', password: 'password', email: 'Jens@example.com' }),
       ).resolves.not.toThrow()
       expect(spy).toHaveBeenCalledTimes(1)
-      expect(spy).toHaveBeenCalledWith({ userName: 'Jens', password: 'password', email: 'frudd@example.com' }, api.ajv)
+      expect(spy).toHaveBeenCalledWith({ userName: 'Jens', password: 'password', email: 'Jens@example.com' }, api.ajv)
 
       spy.mockClear()
     })
@@ -79,6 +79,14 @@ describe('TheModule', async () => {
       const invalidEmail = { userName: 'Frederic', password: 'password', email: 'frudd' }
       const api = await tester.setupDB()
       await expect(api.createUser(invalidEmail)).rejects.toThrowErrorMatchingInlineSnapshot('"Email is not valid"')
+    })
+
+    it('throws an error when email already exists', async ({ expect }) => {
+      const api = await tester.setupDB()
+      await api.createUser({ userName: 'testUser1', password: 'password', email: 'Jens@example.com' })
+      await expect(
+        api.createUser({ userName: 'testUser2', password: 'password', email: 'Jens@example.com' }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot('"User with that email already exists"')
     })
 
     it('throws an error when passed an invalid password', async ({ expect }) => {
@@ -260,10 +268,10 @@ describe('TheModule', async () => {
 
   describe('assignPlayer', () => {
     const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
-    const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
-    const user3 = { userName: 'Jens', password: 'password', email: 'jonas@example.com' }
-    const user4 = { userName: 'Olof', password: 'password', email: 'jonas@example.com' }
-    const user5 = { userName: 'Jonas', password: 'password', email: 'jonas@example.com' }
+    const user2 = { userName: 'Nani', password: 'password', email: 'jonas1@example.com' }
+    const user3 = { userName: 'Jens', password: 'password', email: 'jonas2@example.com' }
+    const user4 = { userName: 'Olof', password: 'password', email: 'jonas3@example.com' }
+    const user5 = { userName: 'Jonas', password: 'password', email: 'jonas4@example.com' }
     it('assigns player to correct seat', async () => {
       const api = await tester.setupDB()
 

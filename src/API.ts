@@ -41,7 +41,6 @@ export class API {
   // @TODO When project is finished, ensure anonymous is allowed,
   // clear them every night and warn in frontend before, what happens if they do not register
   // also delete users that havent logged in in 100 days
-  // dont allow same emails
 
   async createUser({
     userName,
@@ -54,8 +53,16 @@ export class API {
       where: { userName: { [Op.iLike]: userName } },
     })
 
+    const existingEmail = await this.models.Users.findOne({
+      where: { email: { [Op.iLike]: email } },
+    })
+
     if (existingUser) {
       throw new Error('User with that name already exists')
+    }
+
+    if (existingEmail) {
+      throw new Error('User with that email already exists')
     }
 
     await this.models.Users.create({
@@ -255,29 +262,29 @@ export class API {
   // getCards should just return the players cards so that they can be rendered
 }
 
-const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
-const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
-const user3 = { userName: 'Jens', password: 'password', email: 'jonas@example.com' }
-const user4 = { userName: 'Olof', password: 'password', email: 'jonas@example.com' }
-// const user5 = { userName: 'Jonas', password: 'password', email: 'jonas@example.com' }
+// const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+// const user2 = { userName: 'Nani', password: 'password', email: 'jonas@example.com' }
+// const user3 = { userName: 'Jens', password: 'password', email: 'jonas@example.com' }
+// const user4 = { userName: 'Olof', password: 'password', email: 'jonas@example.com' }
+// // const user5 = { userName: 'Jonas', password: 'password', email: 'jonas@example.com' }
 
-const api = new API()
-await api.initDB()
-await api.createUser(user1)
-await api.createUser(user2)
-await api.createUser(user3)
-await api.createUser(user4)
-await api.createGame({ userName: user1.userName, gameName: 'BorisGame' })
+// // const api = new API()
+// // await api.initDB()
+// // await api.createUser(user1)
+// // await api.createUser(user2)
+// // await api.createUser(user3)
+// // await api.createUser(user4)
+// // await api.createGame({ userName: user1.userName, gameName: 'BorisGame' })
 
-await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
-await api.joinGame({ userName: user3.userName, gameName: 'BorisGame' })
-await api.joinGame({ userName: user4.userName, gameName: 'BorisGame' })
+// // await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
+// // await api.joinGame({ userName: user3.userName, gameName: 'BorisGame' })
+// // await api.joinGame({ userName: user4.userName, gameName: 'BorisGame' })
 
-await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
-await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
-await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
-await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
-await api.startGame('BorisGame')
+// // await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
+// // await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
+// // await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
+// // await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
+// // await api.startGame('BorisGame')
 
 // @TODO Check for cascading linking database columns and cascade it:
 // players: {
