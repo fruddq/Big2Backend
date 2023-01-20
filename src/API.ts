@@ -75,8 +75,6 @@ export class API {
       throw new Error('Game name already exists')
     }
 
-    // const usersInTable: string[] = [userName]
-
     await this.models.Games.create({
       gameName,
       gameOwner: userName,
@@ -161,51 +159,55 @@ export class API {
     await game.set(`${playerField}.userName`, userName).save()
   }
 
-  //start game needs to default all the values of the game thats affected.
-  async startGame(gameName: string) {
-    const game = await this.models.Games.findOne({
-      where: { gameName: { [Op.iLike]: gameName } },
-    })
+  // start game needs to default all the values of the game thats affected.
+  // cards should be saved in user instead of game, otherwise, in order to access users cards
+  // user needs to access the game which holds all cards
+  // async startGame(gameName: string) {
+  //   const game = await this.models.Games.findOne({
+  //     where: { gameName: { [Op.iLike]: gameName } },
+  //   })
 
-    if (!game) {
-      throw new Error('Game not found, should not happen')
-    }
+  //   if (!game) {
+  //     throw new Error('Game not found, should not happen')
+  //   }
 
-    const { players }: { players: typeof game } = game.dataValues
+  //   const { players }: { players: typeof game } = game.dataValues
 
-    for (const player of Object.values(players)) {
-      if (player.userName === '') {
-        throw new Error('Wait until all seats are filled')
-      }
-    }
+  //   for (const player of Object.values(players)) {
+  //     if (player.userName === '') {
+  //       throw new Error('Wait until all seats are filled')
+  //     }
+  //   }
 
-    const engine = new Engine()
+  //   const engine = new Engine()
 
-    const {
-      playerOne: playerOneCards,
-      playerTwo: playerTwoCards,
-      playerThree: playerThreeCards,
-      playerFour: playerFourCards,
-    } = engine.playersCards
+  //   const {
+  //     playerOne: playerOneCards,
+  //     playerTwo: playerTwoCards,
+  //     playerThree: playerThreeCards,
+  //     playerFour: playerFourCards,
+  //   } = engine.playersCards
 
-    await game.set('players.playerOne.cards', playerOneCards).save()
-    await game.set('players.playerTwo.cards', playerTwoCards).save()
-    await game.set('players.playerThree.cards', playerThreeCards).save()
-    await game.set('players.playerFour.cards', playerFourCards).save()
+  //   await game.set('players.playerOne.cards', playerOneCards).save()
+  //   await game.set('players.playerTwo.cards', playerTwoCards).save()
+  //   await game.set('players.playerThree.cards', playerThreeCards).save()
+  //   await game.set('players.playerFour.cards', playerFourCards).save()
 
-    if (isStartingPlayer(playerOneCards)) {
-      await game.set('players.playerOne.playerTurn', true).save()
-    }
-    if (isStartingPlayer(playerTwoCards)) {
-      await game.set('players.playerTwo.playerTurn', true).save()
-    }
-    if (isStartingPlayer(playerThreeCards)) {
-      await game.set('players.playerThree.playerTurn', true).save()
-    }
-    if (isStartingPlayer(playerFourCards)) {
-      await game.set('players.playerFour.playerTurn', true).save()
-    }
-  }
+  //   if (isStartingPlayer(playerOneCards)) {
+  //     await game.set('players.playerOne.playerTurn', true).save()
+  //   }
+  //   if (isStartingPlayer(playerTwoCards)) {
+  //     await game.set('players.playerTwo.playerTurn', true).save()
+  //   }
+  //   if (isStartingPlayer(playerThreeCards)) {
+  //     await game.set('players.playerThree.playerTurn', true).save()
+  //   }
+  //   if (isStartingPlayer(playerFourCards)) {
+  //     await game.set('players.playerFour.playerTurn', true).save()
+  //   }
+  // }
+
+  // leave seat, what happens if player tries to leave seat during game?
 
   // play cards function
   // should update cardsThisround property of game with played cards, if tha play is valid
@@ -223,11 +225,15 @@ export class API {
   // then frontend can check if playerWon = 3 then it knows to block all buttons
   // and also render a new button to play another round
 
+  // should make playerturn false and nextplayerturn true, will have to check if roundpass
+
   // pass function
   // should update property roundPass to true
   // should check if three ppl have passed
   // should also check whos turn its next and set it to true
   // param is playernumber as a string for instance 'playerOne'
+
+  // getCards should just return the players cards so that they can be rendered
 }
 
 const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
@@ -250,7 +256,7 @@ await api.assignPlayer({ inputNumber: 1, userName: user1.userName, gameName: 'Bo
 await api.assignPlayer({ inputNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
 await api.assignPlayer({ inputNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
 await api.assignPlayer({ inputNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
-await api.startGame('BorisGame')
+// await api.startGame('BorisGame')
 
 // @TODO Check for cascading linking database columns and cascade it:
 // players: {

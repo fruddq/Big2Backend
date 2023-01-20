@@ -8,6 +8,7 @@ class TableUser extends Model {
   password!: string
   readonly playerID!: string
   userName!: string
+  cards!: PlayerCards
 
   // created and updated is added from sequelize
   readonly createdAt!: string
@@ -17,7 +18,7 @@ class TableUser extends Model {
 interface Player {
   userName: string
   roundPass: boolean
-  cards: PlayerCards
+  // cards: PlayerCards
   score: number
   playerTurn: boolean
 }
@@ -78,6 +79,11 @@ export class Models {
             type: DataTypes.STRING,
             allowNull: true,
           },
+          cards: {
+            type: DataTypes.JSON,
+            defaultValue: [],
+            allowNull: false,
+          },
         },
         { sequelize },
       )
@@ -111,28 +117,28 @@ export class Models {
             defaultValue: {
               playerOne: {
                 userName: '',
-                cards: [],
+                // cards: [],
                 roundPass: false,
                 score: 0,
                 playerTurn: false,
               },
               playerTwo: {
                 userName: '',
-                cards: [],
+                // cards: [],
                 roundPass: false,
                 score: 0,
                 playerTurn: false,
               },
               playerThree: {
                 userName: '',
-                cards: [],
+                // cards: [],
                 roundPass: false,
                 score: 0,
                 playerTurn: false,
               },
               playerFour: {
                 userName: '',
-                cards: [],
+                // cards: [],
                 roundPass: false,
                 score: 0,
                 playerTurn: false,

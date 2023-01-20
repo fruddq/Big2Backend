@@ -34,6 +34,7 @@ describe('TheModule', async () => {
 
       expect(dataValues).toMatchInlineSnapshot(`
         {
+          "cards": [],
           "email": "frudd@example.com",
           "id": 1,
           "joinedTable": null,
@@ -118,28 +119,24 @@ describe('TheModule', async () => {
           "id": 1,
           "players": {
             "playerFour": {
-              "cards": [],
               "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
             },
             "playerOne": {
-              "cards": [],
               "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
             },
             "playerThree": {
-              "cards": [],
               "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
             },
             "playerTwo": {
-              "cards": [],
               "playerTurn": false,
               "roundPass": false,
               "score": 0,
@@ -168,6 +165,7 @@ describe('TheModule', async () => {
 
       expect(dataValuesUser).toMatchInlineSnapshot(`
         {
+          "cards": [],
           "email": "frudd@example.com",
           "id": 1,
           "joinedTable": "validGameName",
@@ -222,28 +220,24 @@ describe('TheModule', async () => {
           "id": 1,
           "players": {
             "playerFour": {
-              "cards": [],
               "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
             },
             "playerOne": {
-              "cards": [],
               "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
             },
             "playerThree": {
-              "cards": [],
               "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "",
             },
             "playerTwo": {
-              "cards": [],
               "playerTurn": false,
               "roundPass": false,
               "score": 0,
@@ -309,28 +303,24 @@ describe('TheModule', async () => {
           "id": 1,
           "players": {
             "playerFour": {
-              "cards": [],
               "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "Olof",
             },
             "playerOne": {
-              "cards": [],
               "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "frudd",
             },
             "playerThree": {
-              "cards": [],
               "playerTurn": false,
               "roundPass": false,
               "score": 0,
               "userName": "Jens",
             },
             "playerTwo": {
-              "cards": [],
               "playerTurn": false,
               "roundPass": false,
               "score": 0,
