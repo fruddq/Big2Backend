@@ -125,10 +125,10 @@ export class API {
   }
 
   async assignPlayer({
-    inputNumber,
+    seatNumber: inputNumber,
     userName,
     gameName,
-  }: { readonly inputNumber: number; readonly userName: string; readonly gameName: string }) {
+  }: { readonly seatNumber: number; readonly userName: string; readonly gameName: string }) {
     if (inputNumber < 1 || inputNumber > 4) {
       throw new Error('Invalid input number. Please enter a number between 1-4.')
     }
@@ -202,15 +202,6 @@ export class API {
     //   ),
     // )
 
-    // const test1 = await this.models.Users.findOne({ where: { userName: { [Op.eq]: playerOne } } })
-    // const test2 = await this.models.Users.findOne({ where: { userName: { [Op.eq]: playerTwo } } })
-    // const test3 = await this.models.Users.findOne({ where: { userName: { [Op.eq]: playerThree } } })
-    // const test4 = await this.models.Users.findOne({ where: { userName: { [Op.eq]: playerFour } } })
-    // console.log(test1?.dataValues)
-    // console.log(test2?.dataValues)
-    // console.log(test3?.dataValues)
-    // console.log(test4?.dataValues)
-
     if (isStartingPlayer(playerOneCards)) {
       await game.set('players.playerOne.playerTurn', true).save()
     }
@@ -280,10 +271,10 @@ await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
 await api.joinGame({ userName: user3.userName, gameName: 'BorisGame' })
 await api.joinGame({ userName: user4.userName, gameName: 'BorisGame' })
 
-await api.assignPlayer({ inputNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
-await api.assignPlayer({ inputNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
-await api.assignPlayer({ inputNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
-await api.assignPlayer({ inputNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
 await api.startGame('BorisGame')
 
 // @TODO Check for cascading linking database columns and cascade it:

@@ -280,10 +280,10 @@ describe('TheModule', async () => {
       await api.joinGame({ userName: user4.userName, gameName: 'validGameName' })
       await api.joinGame({ userName: user5.userName, gameName: 'validGameName' })
 
-      await api.assignPlayer({ inputNumber: 1, userName: user1.userName, gameName: 'validGameName' })
-      await api.assignPlayer({ inputNumber: 2, userName: user2.userName, gameName: 'validGameName' })
-      await api.assignPlayer({ inputNumber: 3, userName: user3.userName, gameName: 'validGameName' })
-      await api.assignPlayer({ inputNumber: 4, userName: user4.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'validGameName' })
 
       const game = await api.models.Games.findOne({
         where: { gameName: { [Op.iLike]: 'validGameName' } },
@@ -355,12 +355,12 @@ describe('TheModule', async () => {
       await api.joinGame({ userName: user4.userName, gameName: 'validGameName' })
       await api.joinGame({ userName: user5.userName, gameName: 'validGameName' })
 
-      await api.assignPlayer({ inputNumber: 1, userName: user1.userName, gameName: 'validGameName' })
-      await api.assignPlayer({ inputNumber: 2, userName: user2.userName, gameName: 'validGameName' })
-      await api.assignPlayer({ inputNumber: 3, userName: user3.userName, gameName: 'validGameName' })
-      await api.assignPlayer({ inputNumber: 4, userName: user4.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'validGameName' })
       await expect(
-        api.assignPlayer({ inputNumber: 4, userName: user5.userName, gameName: 'validGameName' }),
+        api.assignPlayer({ seatNumber: 4, userName: user5.userName, gameName: 'validGameName' }),
       ).rejects.toThrowErrorMatchingInlineSnapshot('"Seat taken, choose another position"')
     })
 
@@ -369,10 +369,10 @@ describe('TheModule', async () => {
 
       await api.createUser(user1)
       await api.createGame({ userName: user1.userName, gameName: 'validGameName' })
-      await api.assignPlayer({ inputNumber: 1, userName: user1.userName, gameName: 'validGameName' })
+      await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'validGameName' })
       ;[-1000000, 0, 5, 10, 10000].forEach(async (number) => {
         await expect(
-          api.assignPlayer({ inputNumber: number, userName: user1.userName, gameName: 'validGameName' }),
+          api.assignPlayer({ seatNumber: number, userName: user1.userName, gameName: 'validGameName' }),
         ).rejects.toThrowErrorMatchingInlineSnapshot('"Invalid input number. Please enter a number between 1-4."')
       })
     })
