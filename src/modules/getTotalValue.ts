@@ -1,4 +1,4 @@
-import type { PlayerCards, ValidSuit, ValidValue } from './PlayerCards'
+import type { PlayerCards, ValidSuit, ValidValue } from './PlayerCards.js'
 import {
   checkPair,
   checktripple,
@@ -6,7 +6,7 @@ import {
   getFourOfAKindValue,
   getFullHouseValue,
   getStraightValue,
-} from './pokerRules'
+} from './pokerRules.js'
 
 // should only accept array of VALID cards and no duplucates of cards.
 export const getTotalValue = (arrayOfCards: PlayerCards) => {

@@ -15,8 +15,8 @@ export class Engine {
   constructor() {
     const deck = this.createDeck()
     const shuffledDeck = this.shuffleDeck(deck)
-    // const playerCards = this.dealCards(shuffledDeck)
-    const playerCards = this.dealCards(deck)
+    const playerCards = this.dealCards(shuffledDeck)
+    // const playerCards = this.dealCards(deck)
 
     this.playersCards = playerCards
   }

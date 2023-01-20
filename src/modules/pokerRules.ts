@@ -1,4 +1,4 @@
-import type { ValidValue, ValidSuit } from './PlayerCards'
+import type { ValidValue, ValidSuit } from './PlayerCards.js'
 
 export const checkPair = (valuesArray: ValidValue[]) => valuesArray.length === 2 && valuesArray[0] === valuesArray[1]
 

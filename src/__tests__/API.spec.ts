@@ -120,11 +120,11 @@ describe('TheModule', async () => {
       expect(updatedAt).toBeInstanceOf(Date)
       expect(dataValues).toMatchInlineSnapshot(`
         {
-          "cardsThisRound": [],
           "gameName": "validGameName",
           "gameOwner": "frudd",
           "gameStarted": false,
           "id": 1,
+          "playedCards": [],
           "players": {
             "playerFour": {
               "playerTurn": false,
@@ -223,11 +223,11 @@ describe('TheModule', async () => {
       expect(updatedAt).toBeInstanceOf(Date)
       expect(dataValues).toMatchInlineSnapshot(`
         {
-          "cardsThisRound": [],
           "gameName": "validGameName",
           "gameOwner": "frudd",
           "gameStarted": false,
           "id": 1,
+          "playedCards": [],
           "players": {
             "playerFour": {
               "playerTurn": false,
@@ -308,11 +308,11 @@ describe('TheModule', async () => {
       expect(updatedAt).toBeInstanceOf(Date)
       expect(dataValues).toMatchInlineSnapshot(`
         {
-          "cardsThisRound": [],
           "gameName": "validGameName",
           "gameOwner": "frudd",
           "gameStarted": false,
           "id": 1,
+          "playedCards": [],
           "players": {
             "playerFour": {
               "playerTurn": false,

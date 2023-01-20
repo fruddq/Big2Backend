@@ -22,11 +22,16 @@ export interface Player {
   playerTurn: boolean
 }
 
+export interface playedCards {
+  userName: string
+  cards: PlayerCards
+}
+
 class TableGames extends Model {
   readonly gameName!: string
   readonly gameOwner!: string
   usersInTable!: string[]
-  cardsThisRound!: string[]
+  playedCards!: playedCards[]
   players!: {
     playerOne: Player
     playerTwo: Player
@@ -108,8 +113,8 @@ export class Models {
             defaultValue: [],
           },
           // will be an array of cards and not strings
-          cardsThisRound: {
-            type: DataTypes.ARRAY(DataTypes.STRING),
+          playedCards: {
+            type: DataTypes.JSON,
             defaultValue: [],
           },
           players: {

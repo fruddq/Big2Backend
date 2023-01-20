@@ -8,7 +8,9 @@ import { isTest } from './config.js'
 import { Engine } from './modules/Engine.js'
 import { isStartingPlayer } from './modules/isStartingPlayer.js'
 import type { PlayerCards } from './modules/PlayerCards.js'
+import { getTotalValue } from './modules/getTotalValue.js'
 
+// @TODO add cache based token
 export class API {
   DB: Sequelize
   ajv = new Ajv()
@@ -42,6 +44,8 @@ export class API {
   // @TODO When project is finished, ensure anonymous is allowed,
   // clear them every night and warn in frontend before, what happens if they do not register
   // also delete users that havent logged in in 100 days
+  // Add a button that asks player how many cards they have left
+  // If they have 1 card
 
   async createUser({
     userName,
@@ -74,6 +78,11 @@ export class API {
     })
   }
 
+  async login() {}
+
+  // player needs to login
+  // @TODO player should not be able to create more than one table
+  // add delete game
   async createGame({
     userName,
     gameName,
@@ -111,6 +120,7 @@ export class API {
 
   // If players are already in game, frontend should redirect a player to the game
   // Player cannot access another page on app if inside a game, have to leave game first
+
   async joinGame({ userName, gameName }: { readonly userName: string; readonly gameName: string }) {
     const game = await this.models.Games.findOne({
       where: { gameName: { [Op.iLike]: gameName } },
@@ -174,6 +184,7 @@ export class API {
 
   // start game needs to default all the values of the game thats affected.
   // cards dont need to be dafaulted as it replaces all players cards in their seats
+  // Need to default playersWon
 
   async startGame(gameName: string) {
     const game = await this.models.Games.findOne({
@@ -237,12 +248,12 @@ export class API {
   // play cards function
   // check if the play is valid? Frontend ?
   // should update cardsThisround property of game with played cards
-  // Should remove the cards played from the array
+  // Should remove the cards played from the array players card array
 
   // assign a property playersWon with default value 0 to the game
   // after each play check if array is empty, then the player has won,
   // get the playerWon value
-  // Update score by adding playerScore[playerOne]; const placeScores = [10, 5, -5, -10];
+  // Update score by adding playerScore[playersWon]; const placeScores = [10, 5, -5, -10];
   // add 1 to playerScore, update the playerWon value in DB
   // should use the pointsvalue in gameDB to calc player sores
 
@@ -256,6 +267,7 @@ export class API {
   //
 
   // should make playerturn false and nextplayerturn true, will have to check if roundpass
+
   async playCards({
     cards,
     gameName,
@@ -270,18 +282,31 @@ export class API {
 
     const player = (Object.values(game?.dataValues.players) as Player[]).find((player) => player.userName === userName)
 
+    // @TODO CHECK THIS IN FRONTEND AS WELL!
     if (!player) {
       throw new Error('Player not in current game')
     }
-    if (player.roundPass) {
-      throw new Error('Player has already passed this round')
-    }
+
+    // @TODO CHECK THIS IN FRONTEND AS WELL!
     if (!player.playerTurn) {
       throw new Error('Not players turn')
     }
 
-    // if user has passed, throw error
-    // if users playerturn false throw error
+    // @TODO CHECK THIS IN FRONTEND AS WELL!
+    if (player.roundPass) {
+      throw new Error('Player has already passed this round')
+    }
+
+    const valueOfPlayCards = getTotalValue(cards)
+    // @TODO CHECK THIS IN FRONTEND AS WELL!
+    if (!valueOfPlayCards) {
+      throw new Error('Invalid play')
+    }
+
+    // @TODO CHECK THIS IN FRONTEND AS WELL!
+    if (!isStartingPlayer(cards)) {
+      throw new Error('First play must contain three of diamonds')
+    }
 
     // first play must contain three of diamonds
     // that means the game must save a property called firstPlay in game
@@ -290,6 +315,8 @@ export class API {
     // after firstplay this will be changed back to false
     console.log(game?.dataValues.players)
     console.log(player)
+
+    return cards
   }
 
   // leave seatFN,
@@ -305,6 +332,8 @@ export class API {
   // should check if three ppl have passed
   // should also check whos turn its next and set it to true
   // param is playernumber as a string for instance 'playerOne'
+  // cannot pass if firstplay = true
+  // after 1.5 min frontend should make a pass request
 
   // getCards should just return the players cards so that they can be rendered
   // need authentication
@@ -319,40 +348,40 @@ export class API {
   }
 }
 
-const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
-const user2 = { userName: 'Nani', password: 'password', email: 'jonas1@example.com' }
-const user3 = { userName: 'Jens', password: 'password', email: 'jonas2@example.com' }
-const user4 = { userName: 'Olof', password: 'password', email: 'jonas3@example.com' }
-// // const user5 = { userName: 'Jonas', password: 'password', email: 'jonas@example.com' }
+// const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+// const user2 = { userName: 'Nani', password: 'password', email: 'jonas1@example.com' }
+// const user3 = { userName: 'Jens', password: 'password', email: 'jonas2@example.com' }
+// const user4 = { userName: 'Olof', password: 'password', email: 'jonas3@example.com' }
+// // // const user5 = { userName: 'Jonas', password: 'password', email: 'jonas@example.com' }
 
-const api = new API()
-await api.initDB()
+// const api = new API()
+// await api.initDB()
 
-await api.createUser(user1)
-await api.createUser(user2)
-await api.createUser(user3)
-await api.createUser(user4)
-await api.createGame({ userName: user1.userName, gameName: 'BorisGame', pointMultiplier: 10 })
+// await api.createUser(user1)
+// await api.createUser(user2)
+// await api.createUser(user3)
+// await api.createUser(user4)
+// await api.createGame({ userName: user1.userName, gameName: 'BorisGame', pointMultiplier: 10 })
 
-await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
-await api.joinGame({ userName: user3.userName, gameName: 'BorisGame' })
-await api.joinGame({ userName: user4.userName, gameName: 'BorisGame' })
+// await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
+// await api.joinGame({ userName: user3.userName, gameName: 'BorisGame' })
+// await api.joinGame({ userName: user4.userName, gameName: 'BorisGame' })
 
-await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
-await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
-await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
-await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
+// await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
+// await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
+// await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
+// await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
 
-await api.startGame('BorisGame')
+// await api.startGame('BorisGame')
 
-const testCards = await api.getCards({ userName: 'frudd' })
+// const testCards = await api.getCards({ userName: 'frudd' })
 
-console.log(testCards)
-await api.playCards({
-  cards: [testCards[0]],
-  gameName: 'BorisGame',
-  userName: user1.userName,
-})
+// console.log(testCards)
+// await api.playCards({
+//   cards: [testCards[8], testCards[1]],
+//   gameName: 'BorisGame',
+//   userName: user1.userName,
+// })
 
 // await api.playCards()
 
@@ -372,3 +401,6 @@ await api.playCards({
 //   onUpdate: 'CASCADE',
 //   onDelete: 'SET NULL',
 // },
+
+// @TODO add websockets, https://socket.io/
+// as soon as data in db is updated then frontend will render
