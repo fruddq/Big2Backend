@@ -9,6 +9,7 @@ import { Engine } from './modules/Engine.js'
 import { isStartingPlayer } from './modules/isStartingPlayer.js'
 import type { PlayerCards } from './modules/PlayerCards.js'
 import { getTotalValue } from './modules/getTotalValue.js'
+import { validatePointMultiplier } from './modules/validatePointMultiplier.js'
 
 // @TODO add cache based token
 export class API {
@@ -91,6 +92,9 @@ export class API {
     const gameExists = await this.models.Games.findOne({
       where: { gameName: { [Op.iLike]: gameName } },
     })
+    if (!validatePointMultiplier(pointMultiplier)) {
+      throw new Error('pointMultiplier must be positive number and dividable by 10')
+    }
 
     if (gameExists) {
       throw new Error('Game name already exists')
@@ -215,6 +219,8 @@ export class API {
     await this.models.Users.update({ cards: playerThreeCards }, { where: { userName: { [Op.eq]: playerThree } } })
     await this.models.Users.update({ cards: playerFourCards }, { where: { userName: { [Op.eq]: playerFour } } })
 
+    await game.set('gameStarted', true).save()
+
     if (isStartingPlayer(playerOneCards)) {
       await game.set('players.playerOne.playerTurn', true).save()
     }
@@ -243,8 +249,10 @@ export class API {
     // })
 
     // console.log(p1?.dataValues)
+    // console.log(game?.dataValues)
     // stop testing
   }
+
   // play cards function
   // check if the play is valid? Frontend ?
   // should update cardsThisround property of game with played cards
@@ -267,7 +275,7 @@ export class API {
   //
 
   // should make playerturn false and nextplayerturn true, will have to check if roundpass
-
+  // There might be a bug when a player tries to play two of the same cards through a manual post request
   async playCards({
     cards,
     gameName,
@@ -280,8 +288,7 @@ export class API {
       throw new Error('Game not found, should not happen')
     }
 
-    const player = (Object.values(game?.dataValues.players) as Player[]).find((player) => player.userName === userName)
-
+    const player = (Object.values(game.dataValues.players) as Player[]).find((player) => player.userName === userName)
     // @TODO CHECK THIS IN FRONTEND AS WELL!
     if (!player) {
       throw new Error('Player not in current game')
@@ -304,16 +311,18 @@ export class API {
     }
 
     // @TODO CHECK THIS IN FRONTEND AS WELL!
-    if (!isStartingPlayer(cards)) {
+    // check startingplaeyr AND if playedCards array is empty
+    const isFirstPlay = game.dataValues.playedCards.length === 0
+    if (!isStartingPlayer(cards) && isFirstPlay) {
       throw new Error('First play must contain three of diamonds')
     }
 
-    // first play must contain three of diamonds
-    // that means the game must save a property called firstPlay in game
-    // this will be a boolean starting as false
-    // at start of game this will be set as true
-    // after firstplay this will be changed back to false
-    console.log(game?.dataValues.players)
+    // Sets playerturn to false
+    const playerKey = Object.keys(game.dataValues.players).find((key) => game.dataValues.players[key] === player)
+    await game.set(`players.${playerKey}.playerTurn`, false).save()
+
+    // Need to set nextplayer turn to true
+    console.log(game?.dataValues)
     console.log(player)
 
     return cards
@@ -348,42 +357,40 @@ export class API {
   }
 }
 
-// const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
-// const user2 = { userName: 'Nani', password: 'password', email: 'jonas1@example.com' }
-// const user3 = { userName: 'Jens', password: 'password', email: 'jonas2@example.com' }
-// const user4 = { userName: 'Olof', password: 'password', email: 'jonas3@example.com' }
-// // // const user5 = { userName: 'Jonas', password: 'password', email: 'jonas@example.com' }
+const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+const user2 = { userName: 'Nani', password: 'password', email: 'jonas1@example.com' }
+const user3 = { userName: 'Jens', password: 'password', email: 'jonas2@example.com' }
+const user4 = { userName: 'Olof', password: 'password', email: 'jonas3@example.com' }
+// // const user5 = { userName: 'Jonas', password: 'password', email: 'jonas@example.com' }
 
-// const api = new API()
-// await api.initDB()
+const api = new API()
+await api.initDB()
 
-// await api.createUser(user1)
-// await api.createUser(user2)
-// await api.createUser(user3)
-// await api.createUser(user4)
-// await api.createGame({ userName: user1.userName, gameName: 'BorisGame', pointMultiplier: 10 })
+await api.createUser(user1)
+await api.createUser(user2)
+await api.createUser(user3)
+await api.createUser(user4)
+await api.createGame({ userName: user1.userName, gameName: 'BorisGame', pointMultiplier: 10 })
 
-// await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
-// await api.joinGame({ userName: user3.userName, gameName: 'BorisGame' })
-// await api.joinGame({ userName: user4.userName, gameName: 'BorisGame' })
+await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
+await api.joinGame({ userName: user3.userName, gameName: 'BorisGame' })
+await api.joinGame({ userName: user4.userName, gameName: 'BorisGame' })
 
-// await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
-// await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
-// await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
-// await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
 
-// await api.startGame('BorisGame')
+await api.startGame('BorisGame')
 
-// const testCards = await api.getCards({ userName: 'frudd' })
+const testCards = await api.getCards({ userName: 'frudd' })
 
 // console.log(testCards)
-// await api.playCards({
-//   cards: [testCards[8], testCards[1]],
-//   gameName: 'BorisGame',
-//   userName: user1.userName,
-// })
-
-// await api.playCards()
+await api.playCards({
+  cards: [testCards[8], testCards[9]],
+  gameName: 'BorisGame',
+  userName: user1.userName,
+})
 
 // @TODO Check for cascading linking database columns and cascade it:
 // players: {

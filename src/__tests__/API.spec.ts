@@ -103,7 +103,7 @@ describe('TheModule', async () => {
       const api = await tester.setupDB()
       const validGameName = 'validGameName'
       await api.createUser(user)
-      await api.createGame({ userName: user.userName, gameName: validGameName, pointMultiplier: 5 })
+      await api.createGame({ userName: user.userName, gameName: validGameName, pointMultiplier: 10 })
 
       const gameInDB = await api.models.Games.findOne({
         where: { gameName: validGameName },
@@ -151,7 +151,7 @@ describe('TheModule', async () => {
               "userName": "",
             },
           },
-          "pointMultiplier": 5,
+          "pointMultiplier": 10,
           "usersInTable": [
             "frudd",
           ],
@@ -194,6 +194,24 @@ describe('TheModule', async () => {
       await expect(
         api.createGame({ userName: 'anotherUser', gameName: validGameName, pointMultiplier: 20 }),
       ).rejects.toThrowErrorMatchingInlineSnapshot('"Game name already exists"')
+    })
+
+    it('Throws an error if pointMultiplier is invalid', async ({ expect }) => {
+      const api = await tester.setupDB()
+      const validGameName = 'validGameName'
+      await api.createUser(user)
+
+      await expect(
+        api.createGame({ userName: 'anotherUser', gameName: validGameName, pointMultiplier: -10 }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot('"pointMultiplier must be positive number and dividable by 10"')
+
+      await expect(
+        api.createGame({ userName: 'anotherUser', gameName: validGameName, pointMultiplier: 17 }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot('"pointMultiplier must be positive number and dividable by 10"')
+
+      await expect(
+        api.createGame({ userName: 'anotherUser', gameName: validGameName, pointMultiplier: 999 }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot('"pointMultiplier must be positive number and dividable by 10"')
     })
   })
 
