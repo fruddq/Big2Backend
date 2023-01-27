@@ -124,6 +124,7 @@ describe('TheModule', async () => {
           "gameOwner": "frudd",
           "gameStarted": false,
           "id": 1,
+          "isFirstPlay": true,
           "playedCards": [],
           "players": {
             "playerFour": {
@@ -245,6 +246,7 @@ describe('TheModule', async () => {
           "gameOwner": "frudd",
           "gameStarted": false,
           "id": 1,
+          "isFirstPlay": true,
           "playedCards": [],
           "players": {
             "playerFour": {
@@ -330,6 +332,7 @@ describe('TheModule', async () => {
           "gameOwner": "frudd",
           "gameStarted": false,
           "id": 1,
+          "isFirstPlay": true,
           "playedCards": [],
           "players": {
             "playerFour": {
