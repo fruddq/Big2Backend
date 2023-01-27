@@ -20,6 +20,7 @@ export interface Player {
   roundPass: boolean
   score: number
   playerTurn: boolean
+  won: boolean
 }
 
 export interface playedCards {
@@ -41,10 +42,13 @@ class TableGames extends Model {
   gameStarted!: boolean
   pointMultiplier!: number
   isFirstPlay!: boolean
+  winnerNumber!: number
   // created and updated is added from sequelize
   readonly createdAt!: string
   readonly updatedAt!: string
 }
+
+export type PlayerKey = 'playerOne' | 'playerTwo' | 'playerThree' | 'playerFour'
 
 export class Models {
   // Should be a loop with the right types after game completion
@@ -127,24 +131,28 @@ export class Models {
                 roundPass: false,
                 score: 0,
                 playerTurn: false,
+                won: false,
               },
               playerTwo: {
                 userName: '',
                 roundPass: false,
                 score: 0,
                 playerTurn: false,
+                won: false,
               },
               playerThree: {
                 userName: '',
                 roundPass: false,
                 score: 0,
                 playerTurn: false,
+                won: false,
               },
               playerFour: {
                 userName: '',
                 roundPass: false,
                 score: 0,
                 playerTurn: false,
+                won: false,
               },
             },
           },
@@ -159,6 +167,10 @@ export class Models {
           isFirstPlay: {
             type: DataTypes.BOOLEAN,
             defaultValue: true,
+          },
+          winnerNumber: {
+            type: DataTypes.INTEGER,
+            defaultValue: 1,
           },
         },
         { sequelize },

@@ -1,8 +1,8 @@
-import { Sequelize, Op, json } from 'sequelize'
+import { Sequelize, Op } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
-import { Models as ModelsDB, Player } from './DB/models.js'
+import { Models as ModelsDB, playedCards, Player, PlayerKey } from './DB/models.js'
 import { validateUser } from './modules/validateUser.js'
 import { isTest } from './config.js'
 import { Engine } from './modules/Engine.js'
@@ -159,7 +159,7 @@ export class API {
     userName,
     gameName,
   }: { readonly seatNumber: 1 | 2 | 3 | 4; readonly userName: string; readonly gameName: string }) {
-    const playerFieldMap: { [key: number]: string } = {
+    const playerFieldMap: { [key: number]: PlayerKey } = {
       1: 'playerOne',
       2: 'playerTwo',
       3: 'playerThree',
@@ -185,10 +185,11 @@ export class API {
     await game.set(`${playerField}.userName`, userName).save()
   }
 
+  // @TODO
   // start game needs to default all the values of the game thats affected.
   // cards dont need to be dafaulted as it replaces all players cards in their seats
   // Need to default playersWon
-
+  // Need to check if gamestarted !== false else throe error game has already started
   async startGame(gameName: string) {
     const game = await this.models.Games.findOne({
       where: { gameName: { [Op.iLike]: gameName } },
@@ -198,7 +199,7 @@ export class API {
       throw new Error('Game not found, should not happen')
     }
 
-    const { players }: { players: typeof game } = game.dataValues
+    const { players } = game.dataValues as typeof game
 
     for (const player of Object.values(players)) {
       if (player.userName === '') {
@@ -210,8 +211,12 @@ export class API {
 
     const { playerOneCards, playerTwoCards, playerThreeCards, playerFourCards } = engine.playersCards
 
-    const [{ userName: playerOne }, { userName: playerTwo }, { userName: playerThree }, { userName: playerFour }] =
-      Object.values(players)
+    const playersArray = Object.values(players)
+
+    const playerOne = playersArray[0]!.userName
+    const playerTwo = playersArray[1]!.userName
+    const playerThree = playersArray[2]!.userName
+    const playerFour = playersArray[3]!.userName
 
     await this.models.Users.update({ cards: playerOneCards }, { where: { userName: { [Op.eq]: playerOne } } })
     await this.models.Users.update({ cards: playerTwoCards }, { where: { userName: { [Op.eq]: playerTwo } } })
@@ -255,25 +260,12 @@ export class API {
   // play cards function
   // check if the play is valid? Frontend ?
 
-  // Should remove the cards played from the array players card array
-
-  // assign a property playersWon with default value 0 to the game
-  // after each play check if array is empty, then the player has won,
-  // get the playerWon value
-  // Update score by adding playerScore[playersWon]; const placeScores = [10, 5, -5, -10];
-  // add 1 to playerScore, update the playerWon value in DB
-  // should use the pointsvalue in gameDB to calc player sores
-
-  // should check when playerWon = 2 then the game is over cuz 3 ppl have no cards left
-  // then it should update the final score -10 to the looser
-  // it should also update playerWon to 3
   // then frontend can check if playerWon = 3 then game is over
   // then it knows to block all buttons
   // and also render a new button to play another round
   // also update gamestarted to false. this will make it easier for leave seat
   //
 
-  // should make playerturn false and nextplayerturn true, will have to check if roundpass
   // There might be a bug when a player tries to play two of the same cards through a manual post request
   async playCards({
     cards,
@@ -304,15 +296,15 @@ export class API {
       throw new Error('Player has already passed this round')
     }
 
-    const valueOfPlayCards = getTotalValue(cards)
+    const valuePlayedCards = getTotalValue(cards)
     // @TODO CHECK THIS IN FRONTEND AS WELL!
-    if (!valueOfPlayCards) {
+    if (!valuePlayedCards) {
       throw new Error('Invalid play, against the rules')
     }
 
-    const { playedCards, isFirstPlay } = game.dataValues
+    const { playedCards, isFirstPlay } = game.dataValues as typeof game
 
-    if (playedCards.length > 0 && playedCards[0].cards.length !== cards.length) {
+    if (playedCards?.length > 0 && playedCards[0]?.cards && playedCards[0]?.cards.length !== cards.length) {
       throw new Error('Invalid play, must have same number of cards as last played cards')
     }
     // @TODO CHECK THIS IN FRONTEND AS WELL!
@@ -335,9 +327,14 @@ export class API {
       throw new Error('You do not have these cards, stop hacking bro')
     }
 
-    await user.update({
-      cards: removePlayedCards(allPlayerCards, cards),
-    })
+    if (playedCards?.length > 0) {
+      const lastCards = playedCards[playedCards.length - 1] as playedCards
+      if (lastCards && getTotalValue(lastCards.cards) > valuePlayedCards) {
+        throw new Error('Cards on table has higher value than played cards')
+      }
+    }
+
+    // CANT FINISH WITH A 2, pair of twos, or Three tos, our four toos
 
     if (isFirstPlay) {
       await game.update({
@@ -345,21 +342,48 @@ export class API {
       })
     }
 
-    const playerKey = Object.keys(game.dataValues.players).find((key) => game.dataValues.players[key] === player)
-    const nextPlayer = getNextPlayerTurn(game?.dataValues.players)
-    await game.update({
-      [`players.${nextPlayer}.playerTurn`]: true,
-      [`players.${playerKey}.playerTurn`]: false,
-    })
-
     const newPlayedCards = [...playedCards]
     newPlayedCards.push({ userName, cards })
     await game.update({
       playedCards: newPlayedCards,
     })
 
-    // console.log(game?.dataValues)
+    await user.update({
+      cards: removePlayedCards(allPlayerCards, cards),
+    })
+    const playerKey = Object.keys(game.dataValues.players).find(
+      (key) => game.dataValues.players[key as PlayerKey] === player,
+    ) as PlayerKey
+    const nextPlayer = getNextPlayerTurn(game.dataValues.players)
+    await game.update({
+      [`players.${nextPlayer}.playerTurn`]: true,
+      [`players.${playerKey}.playerTurn`]: false,
+    })
 
+    if (user.dataValues.cards.length === 0) {
+      const gameValues = game.dataValues as typeof game
+      const currentScore = gameValues.players[playerKey].score
+      const { pointMultiplier, winnerNumber, players } = gameValues
+      await game.update({
+        [`players.${playerKey}.score`]: currentScore + pointMultiplier / winnerNumber,
+        [`players.${playerKey}.won`]: true,
+        winnerNumber: winnerNumber + 1,
+      })
+
+      if (winnerNumber > 2) {
+        await game.update({
+          [`players.${playerKey}.score`]: currentScore - pointMultiplier / 2,
+          [`players.${playerKey}.won`]: true,
+        })
+        const looserKey = Object.keys(players).find((key) => players[key as PlayerKey].won === false) as PlayerKey
+        await game.update({
+          [`players.${looserKey}.score`]: currentScore - pointMultiplier,
+          gameStarted: false,
+        })
+      }
+    }
+
+    console.log(game.dataValues)
     // console.log(cards)
 
     return cards
@@ -424,19 +448,26 @@ await api.startGame('BorisGame')
 
 const testCards1 = await api.getCards({ userName: user1.userName })
 const testCards2 = await api.getCards({ userName: user2.userName })
+const testCards3 = await api.getCards({ userName: user3.userName })
 
-// console.log(testCards)
+console.log(testCards3)
 await api.playCards({
   cards: [testCards1[8], testCards1[9]],
   gameName: 'BorisGame',
   userName: user1.userName,
 })
 
-// await api.playCards({
-//   cards: [testCards2[9], testCards2[8]],
-//   gameName: 'BorisGame',
-//   userName: user2.userName,
-// })
+await api.playCards({
+  cards: [testCards2[9], testCards2[8]],
+  gameName: 'BorisGame',
+  userName: user2.userName,
+})
+
+await api.playCards({
+  cards: [testCards3[0], testCards3[1]],
+  gameName: 'BorisGame',
+  userName: user3.userName,
+})
 
 // const game1 = await api.models.Games.findOne({
 //   where: { gameName: { [Op.iLike]: 'BorisGame' } },
