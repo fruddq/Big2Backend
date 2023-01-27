@@ -304,9 +304,6 @@ export class API {
 
     const { playedCards, isFirstPlay } = game.dataValues as typeof game
 
-    if (playedCards?.length > 0 && playedCards[0]?.cards && playedCards[0]?.cards.length !== cards.length) {
-      throw new Error('Invalid play, must have same number of cards as last played cards')
-    }
     // @TODO CHECK THIS IN FRONTEND AS WELL!
 
     if (!isStartingPlayer(cards) && isFirstPlay) {
@@ -327,13 +324,25 @@ export class API {
       throw new Error('You do not have these cards, stop hacking bro')
     }
 
-    if (playedCards?.length > 0) {
+    let exeption = false
+
+    // @TODO this rule interferes with the rule to CHOP
+    if (
+      !exeption &&
+      playedCards?.length > 0 &&
+      playedCards[0]?.cards &&
+      playedCards[0]?.cards.length !== cards.length
+    ) {
+      throw new Error('Invalid play, must have same number of cards as last played cards')
+    }
+
+    // @TODO this rule interferes with the rule to CHOP
+    if (!exeption && playedCards?.length > 0) {
       const lastCards = playedCards[playedCards.length - 1] as playedCards
       if (lastCards && getTotalValue(lastCards.cards) > valuePlayedCards) {
         throw new Error('Cards on table has higher value than played cards')
       }
     }
-
     // CANT FINISH WITH A 2, pair of twos, or Three tos, our four toos
 
     if (isFirstPlay) {

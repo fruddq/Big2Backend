@@ -53,6 +53,11 @@ export const getTotalValue = (arrayOfCards: PlayerCards) => {
           getFourOfAKindValue(valuesArray)
   }
 
+  // @TODO needs to return a value for 4 of a kind
+  if (valuesArray.length === 4 && getFourOfAKindValue(valuesArray)) {
+    return getFourOfAKindValue(valuesArray)
+  }
+
   return 0
 }
 
