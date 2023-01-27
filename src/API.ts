@@ -11,6 +11,8 @@ import type { PlayerCards } from './modules/PlayerCards.js'
 import { getTotalValue } from './modules/getTotalValue.js'
 import { validatePointMultiplier } from './modules/validatePointMultiplier.js'
 import { getNextPlayerTurn } from './modules/getNextPlayerTurn.js'
+import { removePlayedCards } from './modules/removePlayedCards.js'
+import { hasCards } from './modules/hasCards.js'
 
 // @TODO add cache based token
 export class API {
@@ -323,16 +325,19 @@ export class API {
       where: { userName: { [Op.iLike]: userName } },
     })
 
-    const { cards: allPlayerCards } = user?.dataValues
+    if (!user) {
+      throw new Error('User not found, should not happen')
+    }
 
-    // Delete user cards from user array by downloading it, copy it, remove shit
-    // then update db with new cards
-    // also dont forget to check if the player even have those cards.
-    const newCards = [...allPlayerCards]
-    const test = newCards.filter((card) => {
-      return !cards.some((c) => c.value === card.value && c.suit === card.suit)
+    const { cards: allPlayerCards } = user?.dataValues as { cards: PlayerCards }
+
+    if (!hasCards(allPlayerCards, cards)) {
+      throw new Error('You do not have these cards, stop hacking bro')
+    }
+
+    await user.update({
+      cards: removePlayedCards(allPlayerCards, cards),
     })
-    console.log(test)
 
     if (isFirstPlay) {
       await game.update({
@@ -389,43 +394,43 @@ export class API {
   }
 }
 
-// const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
-// const user2 = { userName: 'Nani', password: 'password', email: 'jonas1@example.com' }
-// const user3 = { userName: 'Jens', password: 'password', email: 'jonas2@example.com' }
-// const user4 = { userName: 'Olof', password: 'password', email: 'jonas3@example.com' }
-// const user5 = { userName: 'Jonas', password: 'password', email: 'jonas@example.com' }
+const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
+const user2 = { userName: 'Nani', password: 'password', email: 'jonas1@example.com' }
+const user3 = { userName: 'Jens', password: 'password', email: 'jonas2@example.com' }
+const user4 = { userName: 'Olof', password: 'password', email: 'jonas3@example.com' }
+const user5 = { userName: 'Jonas', password: 'password', email: 'jonas@example.com' }
 
-// const api = new API()
-// await api.initDB()
+const api = new API()
+await api.initDB()
 
-// await api.createUser(user1)
-// await api.createUser(user2)
-// await api.createUser(user3)
-// await api.createUser(user4)
-// await api.createUser(user5)
-// await api.createGame({ userName: user1.userName, gameName: 'BorisGame', pointMultiplier: 10 })
+await api.createUser(user1)
+await api.createUser(user2)
+await api.createUser(user3)
+await api.createUser(user4)
+await api.createUser(user5)
+await api.createGame({ userName: user1.userName, gameName: 'BorisGame', pointMultiplier: 10 })
 
-// await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
-// await api.joinGame({ userName: user3.userName, gameName: 'BorisGame' })
-// await api.joinGame({ userName: user4.userName, gameName: 'BorisGame' })
-// await api.joinGame({ userName: user5.userName, gameName: 'BorisGame' })
+await api.joinGame({ userName: user2.userName, gameName: 'BorisGame' })
+await api.joinGame({ userName: user3.userName, gameName: 'BorisGame' })
+await api.joinGame({ userName: user4.userName, gameName: 'BorisGame' })
+await api.joinGame({ userName: user5.userName, gameName: 'BorisGame' })
 
-// await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
-// await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
-// await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
-// await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 1, userName: user1.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 2, userName: user2.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 3, userName: user3.userName, gameName: 'BorisGame' })
+await api.assignPlayer({ seatNumber: 4, userName: user4.userName, gameName: 'BorisGame' })
 
-// await api.startGame('BorisGame')
+await api.startGame('BorisGame')
 
-// const testCards1 = await api.getCards({ userName: user1.userName })
-// const testCards2 = await api.getCards({ userName: user2.userName })
+const testCards1 = await api.getCards({ userName: user1.userName })
+const testCards2 = await api.getCards({ userName: user2.userName })
 
-// // console.log(testCards)
-// await api.playCards({
-//   cards: [testCards1[8], testCards1[9]],
-//   gameName: 'BorisGame',
-//   userName: user1.userName,
-// })
+// console.log(testCards)
+await api.playCards({
+  cards: [testCards1[8], testCards1[9]],
+  gameName: 'BorisGame',
+  userName: user1.userName,
+})
 
 // await api.playCards({
 //   cards: [testCards2[9], testCards2[8]],
