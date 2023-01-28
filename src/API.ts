@@ -287,11 +287,6 @@ export class API {
     const player = getPlayer(gameValues, userName)
 
     // @TODO CHECK THIS IN FRONTEND AS WELL!
-    if (!player) {
-      throw new Error('Player not in current game')
-    }
-
-    // @TODO CHECK THIS IN FRONTEND AS WELL!
     if (!player.playerTurn) {
       throw new Error('Not players turn')
     }
@@ -342,7 +337,7 @@ export class API {
       latestPlayedCards.cards.length === 1 &&
       latestPlayedCards.cards[0]?.value === 2 &&
       valuePlayedCards > 702 &&
-      valuePlayedCards < 715
+      valuePlayedCards < 716
     ) {
       bigTwoChop = true
     }
@@ -379,13 +374,14 @@ export class API {
     })
 
     const playerKey = getPlayerKey(gameValues, player)
+
     const nextPlayerKey = getNextPlayerTurn(gameValues.players)
     await game.update({
       [`players.${nextPlayerKey}.playerTurn`]: true,
       [`players.${playerKey}.playerTurn`]: false,
     })
 
-    const currentScore = gameValues.players[playerKey!].score
+    const currentScore = gameValues.players[playerKey].score
 
     if (user.dataValues.cards.length === 0) {
       await game.update({
@@ -410,29 +406,43 @@ export class API {
 
     const secondLatestPlayedCards = playedCards[playedCards.length - 2] as playedCards
     const thirdLatestPlayedCards = playedCards[playedCards.length - 3] as playedCards
-
+    // need to check if theese playuers already won
     if (bigTwoChop) {
-      await this.updatePlayerScore(gameName, player.userName, 100)
+      await this.updatePlayerScore(gameName, userName, 100)
       await this.updatePlayerScore(gameName, latestPlayedCards.userName, -100)
 
       if (secondLatestPlayedCards && secondLatestPlayedCards.cards[0]?.value === 2) {
-        await this.updatePlayerScore(gameName, player.userName, 100)
+        await this.updatePlayerScore(gameName, userName, 100)
         await this.updatePlayerScore(gameName, secondLatestPlayedCards.userName, -100)
 
         if (thirdLatestPlayedCards && thirdLatestPlayedCards.cards[0]?.value === 2) {
-          await this.updatePlayerScore(gameName, player.userName, 100)
+          await this.updatePlayerScore(gameName, userName, 100)
           await this.updatePlayerScore(gameName, thirdLatestPlayedCards.userName, -100)
         }
       }
     }
 
-    //CHOP CHOP
-    if(){
+    if (latestPlayedCards) {
+      const valueLatestPlayedCards = getTotalValue(latestPlayedCards?.cards)
+      const latestPlayer = getPlayer(gameValues, latestPlayedCards.userName)
+      const latestPlayerKey = getPlayerKey(gameValues, latestPlayer)
+      if (
+        valueLatestPlayedCards > 702 &&
+        valueLatestPlayedCards < 716 &&
+        latestPlayedCards.cards.length === 4 &&
+        valuePlayedCards > valueLatestPlayedCards &&
+        !gameValues.players[latestPlayerKey].won
+      ) {
+        await this.updatePlayerScore(gameName, userName, 200)
+        await this.updatePlayerScore(gameName, latestPlayedCards.userName, -200)
+      }
 
+      // STRAIGHT FLUSH SHCHOPS
+      if (valuePlayedCards > 804 && valuePlayedCards > valueLatestPlayedCards) {
+        console.log('holsa')
+      }
     }
 
-    //  console.log(player)
-    console.log(cards)
     // @TODO ensure that if the players last cards are single two he will automatically loose
 
     return cards
@@ -477,12 +487,8 @@ export class API {
 
     const gameValues = game.dataValues as TableGames
     const player = getPlayer(game.dataValues, playerName)
-    if (!player) {
-      throw new Error('Player not found, should not happen')
-    }
     const playerKey = getPlayerKey(game.dataValues, player)
-
-    const currentScore = gameValues.players[playerKey!].score
+    const currentScore = gameValues.players[playerKey].score
 
     await game.update({
       [`players.${playerKey}.score`]: currentScore + score,
@@ -523,7 +529,7 @@ const testCards2 = await api.getCards({ userName: user2.userName })
 const testCards3 = await api.getCards({ userName: user3.userName })
 const testCards4 = await api.getCards({ userName: user4.userName })
 
-console.log(testCards3)
+console.log(testCards4)
 await api.playCards({
   cards: [testCards1[8]],
   gameName: 'BorisGame',
@@ -566,6 +572,12 @@ await api.playCards({
   userName: user3.userName,
 })
 
+await api.playCards({
+  cards: [testCards4[1], testCards4[2], testCards4[3], testCards4[4]],
+  gameName: 'BorisGame',
+  userName: user4.userName,
+})
+
 const game = await api.models.Games.findOne({
   where: { gameName: { [Op.iLike]: 'BorisGame' } },
 })
@@ -592,54 +604,3 @@ console.log(game!.dataValues)
 
 // @TODO add websockets, https://socket.io/
 // as soon as data in db is updated then frontend will render
-
-// if (bigTwoChop) {
-//   // CHOP
-//   const { userName: latestPlayedCardsUserName } = latestPlayedCards
-//   const latestPlayedCardsPlayer = getPlayer(gameValues, latestPlayedCardsUserName)
-
-//   if (!latestPlayedCardsPlayer) {
-//     throw new Error('Player not found, should not happen')
-//   }
-
-//   const latestPlayedCardsKey = getPlayerKey(gameValues, latestPlayedCardsPlayer)
-
-//   await game.update({
-//     [`players.${playerKey}.score`]: currentScore + 100,
-//     [`players.${latestPlayedCardsKey}.score`]: currentScore - 100,
-//   })
-
-//   const secondLatestPlayedCards = playedCards[playedCards.length - 2] as playedCards
-//   if (secondLatestPlayedCards && secondLatestPlayedCards.cards[0]?.value === 2) {
-//     const { userName: secondLatestPlayedCardsUserName } = secondLatestPlayedCards
-//     const secondLatestPlayedCardsPlayer = getPlayer(gameValues, secondLatestPlayedCardsUserName)
-
-//     if (!secondLatestPlayedCardsPlayer) {
-//       throw new Error('Player not found, should not happen')
-//     }
-
-//     const secondLatestPlayedCardsKey = getPlayerKey(gameValues, secondLatestPlayedCardsPlayer)
-
-//     await game.update({
-//       [`players.${playerKey}.score`]: currentScore + 100,
-//       [`players.${secondLatestPlayedCardsKey}.score`]: currentScore - 100,
-//     })
-
-//     const thirdLatestPlayedCards = playedCards[playedCards.length - 3] as playedCards
-//     if (thirdLatestPlayedCards && thirdLatestPlayedCards.cards[0]?.value === 2) {
-//       const { userName: thirdLatestPlayedCardsUserName } = thirdLatestPlayedCards
-//       const thirdLatestPlayedCardsPlayer = getPlayer(gameValues, thirdLatestPlayedCardsUserName)
-
-//       if (!thirdLatestPlayedCardsPlayer) {
-//         throw new Error('Player not found, should not happen')
-//       }
-
-//       const thirdLatestPlayedCardsKey = getPlayerKey(gameValues, thirdLatestPlayedCardsPlayer)
-
-//       await game.update({
-//         [`players.${playerKey}.score`]: currentScore + 100,
-//         [`players.${thirdLatestPlayedCardsKey}.score`]: currentScore - 100,
-//       })
-//     }
-//   }
-// }
