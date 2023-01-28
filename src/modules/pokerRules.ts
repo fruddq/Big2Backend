@@ -72,7 +72,7 @@ export const getFullHouseValue = (valuesArray: ValidValue[]) => {
 }
 
 export const getFourOfAKindValue = (valuesArray: ValidValue[]) => {
-  if (valuesArray.length !== 5) {
+  if (valuesArray.length < 4 || valuesArray.length > 5) {
     return 0
   }
 

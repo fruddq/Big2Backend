@@ -14,6 +14,7 @@ import { getNextPlayerTurn } from './modules/getNextPlayerTurn.js'
 import { removePlayedCards } from './modules/removePlayedCards.js'
 import { hasCards } from './modules/hasCards.js'
 import { getPlayer } from './modules/getPlayer.js'
+import { getPlayerKey } from './modules/getPlayerKey.js'
 
 // @TODO add cache based token
 export class API {
@@ -200,7 +201,7 @@ export class API {
       throw new Error('Game not found, should not happen')
     }
 
-    const { players } = game.dataValues as typeof game
+    const { players } = game.dataValues as TableGames
 
     for (const player of Object.values(players)) {
       if (player.userName === '') {
@@ -281,7 +282,10 @@ export class API {
       throw new Error('Game not found, should not happen')
     }
 
-    const player = getPlayer(game.dataValues, userName)
+    const gameValues = game.dataValues as TableGames
+    const { pointMultiplier, winnerNumber, players, playedCards, isFirstPlay } = gameValues
+    const player = getPlayer(gameValues, userName)
+
     // @TODO CHECK THIS IN FRONTEND AS WELL!
     if (!player) {
       throw new Error('Player not in current game')
@@ -304,7 +308,6 @@ export class API {
     }
 
     // @TODO CHECK THIS IN FRONTEND AS WELL!
-    const { playedCards, isFirstPlay } = game.dataValues as typeof game
 
     if (!isStartingPlayer(cards) && isFirstPlay) {
       throw new Error('First play must contain three of diamonds')
@@ -375,18 +378,14 @@ export class API {
       cards: removePlayedCards(allPlayerCards, cards),
     })
 
-    const playerKey = Object.keys(game.dataValues.players).find(
-      (key) => game.dataValues.players[key as PlayerKey] === player,
-    ) as PlayerKey
-    const nextPlayerKey = getNextPlayerTurn(game.dataValues.players)
+    const playerKey = getPlayerKey(gameValues, player)
+    const nextPlayerKey = getNextPlayerTurn(gameValues.players)
     await game.update({
       [`players.${nextPlayerKey}.playerTurn`]: true,
       [`players.${playerKey}.playerTurn`]: false,
     })
 
-    const gameValues = game.dataValues as typeof game
-    const currentScore = gameValues.players[playerKey].score
-    const { pointMultiplier, winnerNumber, players } = gameValues
+    const currentScore = gameValues.players[playerKey!].score
 
     if (user.dataValues.cards.length === 0) {
       await game.update({
@@ -409,29 +408,25 @@ export class API {
       }
     }
 
+    const secondLatestPlayedCards = playedCards[playedCards.length - 2] as playedCards
+    const thirdLatestPlayedCards = playedCards[playedCards.length - 3] as playedCards
     if (bigTwoChop) {
-      // CHOP
-      await game.update({
-        [`players.${playerKey}.score`]: currentScore + 100,
-      })
+      await this.updatePlayerScore(gameName, player.userName, 100)
+      await this.updatePlayerScore(gameName, latestPlayedCards.userName, -100)
 
-      const secondLatestPlayedCards = playedCards[playedCards.length - 2] as playedCards
       if (secondLatestPlayedCards && secondLatestPlayedCards.cards[0]?.value === 2) {
-        // CHOP
-        const thirdLatestPlayedCards = playedCards[playedCards.length - 3] as playedCards
+        await this.updatePlayerScore(gameName, player.userName, 100)
+        await this.updatePlayerScore(gameName, secondLatestPlayedCards.userName, -100)
+
         if (thirdLatestPlayedCards && thirdLatestPlayedCards.cards[0]?.value === 2) {
-          // CHOP
+          await this.updatePlayerScore(gameName, player.userName, 100)
+          await this.updatePlayerScore(gameName, thirdLatestPlayedCards.userName, -100)
         }
       }
     }
 
-    // const player = (Object.values(game.dataValues.players) as Player[]).find((player) => player.userName === userName)
-    // const playerKey = Object.keys(game.dataValues.players).find(
-    //   (key) => game.dataValues.players[key as PlayerKey] === player,
-    // ) as PlayerKey
-    // console.log(game.dataValues)
-    console.log(player)
-
+    //  console.log(player)
+    // console.log(cards)
     // @TODO ensure that if the players last cards are single two he will automatically loose
 
     return cards
@@ -463,6 +458,29 @@ export class API {
       throw new Error('Cant find player, should not happen')
     }
     return result.dataValues.cards
+  }
+
+  async updatePlayerScore(gameName: string, playerName: string, score: number) {
+    const game = await this.models.Games.findOne({
+      where: { gameName: { [Op.iLike]: gameName } },
+    })
+
+    if (!game) {
+      throw new Error('Game not found, should not happen')
+    }
+
+    const gameValues = game.dataValues as TableGames
+    const player = getPlayer(game.dataValues, playerName)
+    if (!player) {
+      throw new Error('Player not found, should not happen')
+    }
+    const playerKey = getPlayerKey(game.dataValues, player)
+
+    const currentScore = gameValues.players[playerKey!].score
+
+    await game.update({
+      [`players.${playerKey}.score`]: currentScore + score,
+    })
   }
 }
 
@@ -497,29 +515,50 @@ await api.startGame('BorisGame')
 const testCards1 = await api.getCards({ userName: user1.userName })
 const testCards2 = await api.getCards({ userName: user2.userName })
 const testCards3 = await api.getCards({ userName: user3.userName })
+const testCards4 = await api.getCards({ userName: user4.userName })
 
-// console.log(testCards3)
+console.log(testCards1)
 await api.playCards({
-  cards: [testCards1[8], testCards1[9]],
+  cards: [testCards1[8]],
   gameName: 'BorisGame',
   userName: user1.userName,
 })
 
 await api.playCards({
-  cards: [testCards2[9], testCards2[8]],
+  cards: [testCards2[9]],
   gameName: 'BorisGame',
   userName: user2.userName,
 })
 
 await api.playCards({
-  cards: [testCards3[0], testCards3[1]],
+  cards: [testCards3[0]],
   gameName: 'BorisGame',
   userName: user3.userName,
 })
 
-// const game1 = await api.models.Games.findOne({
-//   where: { gameName: { [Op.iLike]: 'BorisGame' } },
-// })
+await api.playCards({
+  cards: [testCards4[12]],
+  gameName: 'BorisGame',
+  userName: user4.userName,
+})
+
+await api.playCards({
+  cards: [testCards1[5]],
+  gameName: 'BorisGame',
+  userName: user1.userName,
+})
+
+await api.playCards({
+  cards: [testCards2[3], testCards2[4], testCards2[5], testCards2[6]],
+  gameName: 'BorisGame',
+  userName: user2.userName,
+})
+
+const game = await api.models.Games.findOne({
+  where: { gameName: { [Op.iLike]: 'BorisGame' } },
+})
+
+console.log(game!.dataValues)
 
 // console.log(game1?.dataValues)
 // @TODO Check for cascading linking database columns and cascade it:
@@ -541,3 +580,54 @@ await api.playCards({
 
 // @TODO add websockets, https://socket.io/
 // as soon as data in db is updated then frontend will render
+
+// if (bigTwoChop) {
+//   // CHOP
+//   const { userName: latestPlayedCardsUserName } = latestPlayedCards
+//   const latestPlayedCardsPlayer = getPlayer(gameValues, latestPlayedCardsUserName)
+
+//   if (!latestPlayedCardsPlayer) {
+//     throw new Error('Player not found, should not happen')
+//   }
+
+//   const latestPlayedCardsKey = getPlayerKey(gameValues, latestPlayedCardsPlayer)
+
+//   await game.update({
+//     [`players.${playerKey}.score`]: currentScore + 100,
+//     [`players.${latestPlayedCardsKey}.score`]: currentScore - 100,
+//   })
+
+//   const secondLatestPlayedCards = playedCards[playedCards.length - 2] as playedCards
+//   if (secondLatestPlayedCards && secondLatestPlayedCards.cards[0]?.value === 2) {
+//     const { userName: secondLatestPlayedCardsUserName } = secondLatestPlayedCards
+//     const secondLatestPlayedCardsPlayer = getPlayer(gameValues, secondLatestPlayedCardsUserName)
+
+//     if (!secondLatestPlayedCardsPlayer) {
+//       throw new Error('Player not found, should not happen')
+//     }
+
+//     const secondLatestPlayedCardsKey = getPlayerKey(gameValues, secondLatestPlayedCardsPlayer)
+
+//     await game.update({
+//       [`players.${playerKey}.score`]: currentScore + 100,
+//       [`players.${secondLatestPlayedCardsKey}.score`]: currentScore - 100,
+//     })
+
+//     const thirdLatestPlayedCards = playedCards[playedCards.length - 3] as playedCards
+//     if (thirdLatestPlayedCards && thirdLatestPlayedCards.cards[0]?.value === 2) {
+//       const { userName: thirdLatestPlayedCardsUserName } = thirdLatestPlayedCards
+//       const thirdLatestPlayedCardsPlayer = getPlayer(gameValues, thirdLatestPlayedCardsUserName)
+
+//       if (!thirdLatestPlayedCardsPlayer) {
+//         throw new Error('Player not found, should not happen')
+//       }
+
+//       const thirdLatestPlayedCardsKey = getPlayerKey(gameValues, thirdLatestPlayedCardsPlayer)
+
+//       await game.update({
+//         [`players.${playerKey}.score`]: currentScore + 100,
+//         [`players.${thirdLatestPlayedCardsKey}.score`]: currentScore - 100,
+//       })
+//     }
+//   }
+// }
