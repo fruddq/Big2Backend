@@ -2,7 +2,7 @@ import { Sequelize, Op } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
-import { Models as ModelsDB, playedCards, Player, PlayerKey } from './DB/models.js'
+import { Models as ModelsDB, playedCards, Player, PlayerKey, TableGames } from './DB/models.js'
 import { validateUser } from './modules/validateUser.js'
 import { isTest } from './config.js'
 import { Engine } from './modules/Engine.js'
@@ -13,6 +13,7 @@ import { validatePointMultiplier } from './modules/validatePointMultiplier.js'
 import { getNextPlayerTurn } from './modules/getNextPlayerTurn.js'
 import { removePlayedCards } from './modules/removePlayedCards.js'
 import { hasCards } from './modules/hasCards.js'
+import { getPlayer } from './modules/getPlayer.js'
 
 // @TODO add cache based token
 export class API {
@@ -280,7 +281,7 @@ export class API {
       throw new Error('Game not found, should not happen')
     }
 
-    const player = (Object.values(game.dataValues.players) as Player[]).find((player) => player.userName === userName)
+    const player = getPlayer(game.dataValues, userName)
     // @TODO CHECK THIS IN FRONTEND AS WELL!
     if (!player) {
       throw new Error('Player not in current game')
@@ -302,9 +303,8 @@ export class API {
       throw new Error('Invalid play, against the rules')
     }
 
-    const { playedCards, isFirstPlay } = game.dataValues as typeof game
-
     // @TODO CHECK THIS IN FRONTEND AS WELL!
+    const { playedCards, isFirstPlay } = game.dataValues as typeof game
 
     if (!isStartingPlayer(cards) && isFirstPlay) {
       throw new Error('First play must contain three of diamonds')
@@ -324,11 +324,28 @@ export class API {
       throw new Error('You do not have these cards, stop hacking bro')
     }
 
-    let exeption = false
+    const latestPlayedCards = playedCards[playedCards.length - 1] as playedCards
 
-    // @TODO this rule interferes with the rule to CHOP
+    if (playedCards?.length > 0) {
+      if (latestPlayedCards && getTotalValue(latestPlayedCards.cards) > valuePlayedCards) {
+        throw new Error('Invalid play, cards on table has higher value than played cards')
+      }
+    }
+
+    let bigTwoChop = false
+
     if (
-      !exeption &&
+      latestPlayedCards &&
+      latestPlayedCards.cards.length === 1 &&
+      latestPlayedCards.cards[0]?.value === 2 &&
+      valuePlayedCards > 702 &&
+      valuePlayedCards < 715
+    ) {
+      bigTwoChop = true
+    }
+
+    if (
+      !bigTwoChop &&
       playedCards?.length > 0 &&
       playedCards[0]?.cards &&
       playedCards[0]?.cards.length !== cards.length
@@ -336,20 +353,17 @@ export class API {
       throw new Error('Invalid play, must have same number of cards as last played cards')
     }
 
-    // @TODO this rule interferes with the rule to CHOP
-    if (!exeption && playedCards?.length > 0) {
-      const lastCards = playedCards[playedCards.length - 1] as playedCards
-      if (lastCards && getTotalValue(lastCards.cards) > valuePlayedCards) {
-        throw new Error('Cards on table has higher value than played cards')
-      }
+    if (allPlayerCards.length === cards.length && cards[0]!.value === 2 && cards.length < 4 && valuePlayedCards) {
+      throw new Error('Invalid play, can not win with single, pair or tripple 2')
     }
-    // CANT FINISH WITH A 2, pair of twos, or Three tos, our four toos
 
     if (isFirstPlay) {
       await game.update({
         isFirstPlay: false,
       })
     }
+
+    // @TODO make surethere is a rule for straight flush
 
     const newPlayedCards = [...playedCards]
     newPlayedCards.push({ userName, cards })
@@ -360,19 +374,21 @@ export class API {
     await user.update({
       cards: removePlayedCards(allPlayerCards, cards),
     })
+
     const playerKey = Object.keys(game.dataValues.players).find(
       (key) => game.dataValues.players[key as PlayerKey] === player,
     ) as PlayerKey
-    const nextPlayer = getNextPlayerTurn(game.dataValues.players)
+    const nextPlayerKey = getNextPlayerTurn(game.dataValues.players)
     await game.update({
-      [`players.${nextPlayer}.playerTurn`]: true,
+      [`players.${nextPlayerKey}.playerTurn`]: true,
       [`players.${playerKey}.playerTurn`]: false,
     })
 
+    const gameValues = game.dataValues as typeof game
+    const currentScore = gameValues.players[playerKey].score
+    const { pointMultiplier, winnerNumber, players } = gameValues
+
     if (user.dataValues.cards.length === 0) {
-      const gameValues = game.dataValues as typeof game
-      const currentScore = gameValues.players[playerKey].score
-      const { pointMultiplier, winnerNumber, players } = gameValues
       await game.update({
         [`players.${playerKey}.score`]: currentScore + pointMultiplier / winnerNumber,
         [`players.${playerKey}.won`]: true,
@@ -384,6 +400,7 @@ export class API {
           [`players.${playerKey}.score`]: currentScore - pointMultiplier / 2,
           [`players.${playerKey}.won`]: true,
         })
+        // @TODO check that getlooserkey happens after playerwon sets to true for third player
         const looserKey = Object.keys(players).find((key) => players[key as PlayerKey].won === false) as PlayerKey
         await game.update({
           [`players.${looserKey}.score`]: currentScore - pointMultiplier,
@@ -392,8 +409,30 @@ export class API {
       }
     }
 
-    console.log(game.dataValues)
-    // console.log(cards)
+    if (bigTwoChop) {
+      // CHOP
+      await game.update({
+        [`players.${playerKey}.score`]: currentScore + 100,
+      })
+
+      const secondLatestPlayedCards = playedCards[playedCards.length - 2] as playedCards
+      if (secondLatestPlayedCards && secondLatestPlayedCards.cards[0]?.value === 2) {
+        // CHOP
+        const thirdLatestPlayedCards = playedCards[playedCards.length - 3] as playedCards
+        if (thirdLatestPlayedCards && thirdLatestPlayedCards.cards[0]?.value === 2) {
+          // CHOP
+        }
+      }
+    }
+
+    // const player = (Object.values(game.dataValues.players) as Player[]).find((player) => player.userName === userName)
+    // const playerKey = Object.keys(game.dataValues.players).find(
+    //   (key) => game.dataValues.players[key as PlayerKey] === player,
+    // ) as PlayerKey
+    // console.log(game.dataValues)
+    console.log(player)
+
+    // @TODO ensure that if the players last cards are single two he will automatically loose
 
     return cards
   }
@@ -459,7 +498,7 @@ const testCards1 = await api.getCards({ userName: user1.userName })
 const testCards2 = await api.getCards({ userName: user2.userName })
 const testCards3 = await api.getCards({ userName: user3.userName })
 
-console.log(testCards3)
+// console.log(testCards3)
 await api.playCards({
   cards: [testCards1[8], testCards1[9]],
   gameName: 'BorisGame',

@@ -28,7 +28,7 @@ export interface playedCards {
   cards: PlayerCards
 }
 
-class TableGames extends Model {
+export class TableGames extends Model {
   readonly gameName!: string
   readonly gameOwner!: string
   usersInTable!: string[]
