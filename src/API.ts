@@ -350,8 +350,8 @@ export class API {
     if (
       !bigTwoChop &&
       playedCards?.length > 0 &&
-      playedCards[0]?.cards &&
-      playedCards[0]?.cards.length !== cards.length
+      playedCards[playedCards.length - 1]?.cards &&
+      playedCards[playedCards.length - 1]?.cards.length !== cards.length
     ) {
       throw new Error('Invalid play, must have same number of cards as last played cards')
     }
@@ -410,6 +410,7 @@ export class API {
 
     const secondLatestPlayedCards = playedCards[playedCards.length - 2] as playedCards
     const thirdLatestPlayedCards = playedCards[playedCards.length - 3] as playedCards
+
     if (bigTwoChop) {
       await this.updatePlayerScore(gameName, player.userName, 100)
       await this.updatePlayerScore(gameName, latestPlayedCards.userName, -100)
@@ -425,8 +426,13 @@ export class API {
       }
     }
 
+    //CHOP CHOP
+    if(){
+
+    }
+
     //  console.log(player)
-    // console.log(cards)
+    console.log(cards)
     // @TODO ensure that if the players last cards are single two he will automatically loose
 
     return cards
@@ -517,7 +523,7 @@ const testCards2 = await api.getCards({ userName: user2.userName })
 const testCards3 = await api.getCards({ userName: user3.userName })
 const testCards4 = await api.getCards({ userName: user4.userName })
 
-console.log(testCards1)
+console.log(testCards3)
 await api.playCards({
   cards: [testCards1[8]],
   gameName: 'BorisGame',
@@ -552,6 +558,12 @@ await api.playCards({
   cards: [testCards2[3], testCards2[4], testCards2[5], testCards2[6]],
   gameName: 'BorisGame',
   userName: user2.userName,
+})
+
+await api.playCards({
+  cards: [testCards3[2], testCards3[3], testCards3[4], testCards3[5]],
+  gameName: 'BorisGame',
+  userName: user3.userName,
 })
 
 const game = await api.models.Games.findOne({
