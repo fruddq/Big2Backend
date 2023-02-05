@@ -404,19 +404,25 @@ export class API {
       }
     }
 
+    // CHOP
     if (bigTwoChop) {
-      // CHOP
       for (let i = 1; i < 5; i++) {
-        const previousPlayedCards = playedCards[playedCards.length - i] as playedCards
+        const previousPlayedCards = playedCards[playedCards.length - i]
         if (previousPlayedCards?.cards[0]?.value === 2) {
           const { userName: previousPlayedCardsUserName } = previousPlayedCards
           const previousPlayedCardsPlayer = getPlayer(gameValues, previousPlayedCardsUserName)
           const previousPlayedCardsKey = getPlayerKey(gameValues, previousPlayedCardsPlayer)
           const previousPlayerScore = gameValues.players[previousPlayedCardsKey].score
-          await game.update({
-            [`players.${playerKey}.score`]: currentScore + 100,
-            [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 100,
-          })
+
+          if (
+            !gameValues.players[previousPlayedCardsKey].won &&
+            gameValues.players[previousPlayedCardsKey].userName !== userName
+          ) {
+            await game.update({
+              [`players.${playerKey}.score`]: currentScore + 100,
+              [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 100,
+            })
+          }
         }
       }
     }
@@ -431,13 +437,16 @@ export class API {
         const previousPlayerScore = gameValues.players[previousPlayedCardsKey].score
         const valuePreviousPlayedCards = getTotalValue(previousPlayedCards.cards)
 
-        if (valuePlayedCards > valuePreviousPlayedCards && valuePreviousPlayedCards > 702) {
+        if (
+          valuePlayedCards > valuePreviousPlayedCards &&
+          valuePreviousPlayedCards > 702 &&
+          !gameValues.players[previousPlayedCardsKey].won
+        ) {
           await game.update({
             [`players.${playerKey}.score`]: currentScore + 200,
             [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 200,
           })
         }
-        console.log(previousPlayedCards)
       }
     }
 
@@ -533,7 +542,7 @@ const testCards2 = await api.getCards({ userName: user2.userName })
 const testCards3 = await api.getCards({ userName: user3.userName })
 const testCards4 = await api.getCards({ userName: user4.userName })
 
-console.log(testCards4)
+// console.log(testCards4)
 await api.playCards({
   cards: [testCards1[8]],
   gameName: 'BorisGame',
