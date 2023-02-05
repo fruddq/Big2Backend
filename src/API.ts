@@ -404,44 +404,48 @@ export class API {
       }
     }
 
-    const secondLatestPlayedCards = playedCards[playedCards.length - 2] as playedCards
-    const thirdLatestPlayedCards = playedCards[playedCards.length - 3] as playedCards
-    // need to check if theese playuers already won
     if (bigTwoChop) {
-      await this.updatePlayerScore(gameName, userName, 100)
-      await this.updatePlayerScore(gameName, latestPlayedCards.userName, -100)
-
-      if (secondLatestPlayedCards && secondLatestPlayedCards.cards[0]?.value === 2) {
-        await this.updatePlayerScore(gameName, userName, 100)
-        await this.updatePlayerScore(gameName, secondLatestPlayedCards.userName, -100)
-
-        if (thirdLatestPlayedCards && thirdLatestPlayedCards.cards[0]?.value === 2) {
-          await this.updatePlayerScore(gameName, userName, 100)
-          await this.updatePlayerScore(gameName, thirdLatestPlayedCards.userName, -100)
+      // CHOP
+      for (let i = 1; i < 5; i++) {
+        const previousPlayedCards = playedCards[playedCards.length - i] as playedCards
+        if (previousPlayedCards?.cards[0]?.value === 2) {
+          const { userName: previousPlayedCardsUserName } = previousPlayedCards
+          const previousPlayedCardsPlayer = getPlayer(gameValues, previousPlayedCardsUserName)
+          const previousPlayedCardsKey = getPlayerKey(gameValues, previousPlayedCardsPlayer)
+          const previousPlayerScore = gameValues.players[previousPlayedCardsKey].score
+          await game.update({
+            [`players.${playerKey}.score`]: currentScore + 100,
+            [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 100,
+          })
         }
       }
     }
 
-    if (latestPlayedCards) {
-      const valueLatestPlayedCards = getTotalValue(latestPlayedCards?.cards)
-      const latestPlayer = getPlayer(gameValues, latestPlayedCards.userName)
-      const latestPlayerKey = getPlayerKey(gameValues, latestPlayer)
-      if (
-        valueLatestPlayedCards > 702 &&
-        valueLatestPlayedCards < 716 &&
-        latestPlayedCards.cards.length === 4 &&
-        valuePlayedCards > valueLatestPlayedCards &&
-        !gameValues.players[latestPlayerKey].won
-      ) {
-        await this.updatePlayerScore(gameName, userName, 200)
-        await this.updatePlayerScore(gameName, latestPlayedCards.userName, -200)
-      }
+    if (valuePlayedCards > 702 && valuePlayedCards < 716 && latestPlayedCards.cards.length === 4) {
+      const previousPlayedCards = playedCards[playedCards.length - 1] as playedCards
 
-      // STRAIGHT FLUSH SHCHOPS
-      if (valuePlayedCards > 804 && valuePlayedCards > valueLatestPlayedCards) {
-        console.log('holsa')
+      if (previousPlayedCards) {
+        const { userName: previousPlayedCardsUserName } = previousPlayedCards
+        const previousPlayedCardsPlayer = getPlayer(gameValues, previousPlayedCardsUserName)
+        const previousPlayedCardsKey = getPlayerKey(gameValues, previousPlayedCardsPlayer)
+        const previousPlayerScore = gameValues.players[previousPlayedCardsKey].score
+        const valuePreviousPlayedCards = getTotalValue(previousPlayedCards.cards)
+
+        if (valuePlayedCards > valuePreviousPlayedCards && valuePreviousPlayedCards > 702) {
+          await game.update({
+            [`players.${playerKey}.score`]: currentScore + 200,
+            [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 200,
+          })
+        }
+        console.log(previousPlayedCards)
       }
     }
+
+    //   // STRAIGHT FLUSH SHCHOPS
+    //   if (valuePlayedCards > 804 && valuePlayedCards > valueLatestPlayedCards) {
+    //     console.log('holsa')
+    //   }
+    // }
 
     // @TODO ensure that if the players last cards are single two he will automatically loose
 
