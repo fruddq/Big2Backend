@@ -331,13 +331,16 @@ export class API {
     }
 
     let bigTwoChop = false
+    let fourOfAKindChop = false
+    if (valuePlayedCards > 702 && valuePlayedCards < 716 && cards.length === 4) {
+      fourOfAKindChop = true
+    }
 
     if (
       latestPlayedCards &&
       latestPlayedCards.cards.length === 1 &&
       latestPlayedCards.cards[0]?.value === 2 &&
-      valuePlayedCards > 702 &&
-      valuePlayedCards < 716
+      fourOfAKindChop
     ) {
       bigTwoChop = true
     }
@@ -405,50 +408,67 @@ export class API {
     }
 
     // CHOP
-    if (bigTwoChop) {
+    if (bigTwoChop || fourOfAKindChop) {
       for (let i = 1; i < 5; i++) {
         const previousPlayedCards = playedCards[playedCards.length - i]
-        if (previousPlayedCards?.cards[0]?.value === 2) {
+
+        if (previousPlayedCards) {
           const { userName: previousPlayedCardsUserName } = previousPlayedCards
           const previousPlayedCardsPlayer = getPlayer(gameValues, previousPlayedCardsUserName)
           const previousPlayedCardsKey = getPlayerKey(gameValues, previousPlayedCardsPlayer)
           const previousPlayerScore = gameValues.players[previousPlayedCardsKey].score
+          if (previousPlayedCards?.cards[0]?.value === 2 && bigTwoChop) {
+            if (
+              !gameValues.players[previousPlayedCardsKey].won &&
+              gameValues.players[previousPlayedCardsKey].userName !== userName
+            ) {
+              await game.update({
+                [`players.${playerKey}.score`]: currentScore + 100,
+                [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 100,
+              })
+            }
+          }
+
+          const valuePreviousPlayedCards = getTotalValue(previousPlayedCards.cards)
 
           if (
+            valuePlayedCards > valuePreviousPlayedCards &&
+            valuePreviousPlayedCards > 702 &&
             !gameValues.players[previousPlayedCardsKey].won &&
-            gameValues.players[previousPlayedCardsKey].userName !== userName
+            i === 1 &&
+            latestPlayedCards.cards.length === 4
           ) {
             await game.update({
-              [`players.${playerKey}.score`]: currentScore + 100,
-              [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 100,
+              [`players.${playerKey}.score`]: currentScore + 200,
+              [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 200,
             })
           }
         }
       }
     }
 
-    if (valuePlayedCards > 702 && valuePlayedCards < 716 && latestPlayedCards.cards.length === 4) {
-      const previousPlayedCards = playedCards[playedCards.length - 1] as playedCards
+    // if (valuePlayedCards > 702 && valuePlayedCards < 716 && latestPlayedCards.cards.length === 4) {
+    //   const previousPlayedCards = playedCards[playedCards.length - 1]
 
-      if (previousPlayedCards) {
-        const { userName: previousPlayedCardsUserName } = previousPlayedCards
-        const previousPlayedCardsPlayer = getPlayer(gameValues, previousPlayedCardsUserName)
-        const previousPlayedCardsKey = getPlayerKey(gameValues, previousPlayedCardsPlayer)
-        const previousPlayerScore = gameValues.players[previousPlayedCardsKey].score
-        const valuePreviousPlayedCards = getTotalValue(previousPlayedCards.cards)
+    //   if (previousPlayedCards) {
+    //     const { userName: previousPlayedCardsUserName } = previousPlayedCards
+    //     const previousPlayedCardsPlayer = getPlayer(gameValues, previousPlayedCardsUserName)
+    //     const previousPlayedCardsKey = getPlayerKey(gameValues, previousPlayedCardsPlayer)
+    //     const previousPlayerScore = gameValues.players[previousPlayedCardsKey].score
+    //     const valuePreviousPlayedCards = getTotalValue(previousPlayedCards.cards)
 
-        if (
-          valuePlayedCards > valuePreviousPlayedCards &&
-          valuePreviousPlayedCards > 702 &&
-          !gameValues.players[previousPlayedCardsKey].won
-        ) {
-          await game.update({
-            [`players.${playerKey}.score`]: currentScore + 200,
-            [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 200,
-          })
-        }
-      }
-    }
+    //     if (
+    //       valuePlayedCards > valuePreviousPlayedCards &&
+    //       valuePreviousPlayedCards > 702 &&
+    //       !gameValues.players[previousPlayedCardsKey].won
+    //     ) {
+    //       await game.update({
+    //         [`players.${playerKey}.score`]: currentScore + 200,
+    //         [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 200,
+    //       })
+    //     }
+    //   }
+    // }
 
     //   // STRAIGHT FLUSH SHCHOPS
     //   if (valuePlayedCards > 804 && valuePlayedCards > valueLatestPlayedCards) {
