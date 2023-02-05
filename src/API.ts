@@ -409,7 +409,7 @@ export class API {
 
     // CHOP
     if (bigTwoChop || fourOfAKindChop) {
-      for (let i = 1; i < 5; i++) {
+      for (let i = 1; i < 6; i++) {
         const previousPlayedCards = playedCards[playedCards.length - i]
 
         if (previousPlayedCards) {
@@ -417,6 +417,7 @@ export class API {
           const previousPlayedCardsPlayer = getPlayer(gameValues, previousPlayedCardsUserName)
           const previousPlayedCardsKey = getPlayerKey(gameValues, previousPlayedCardsPlayer)
           const previousPlayerScore = gameValues.players[previousPlayedCardsKey].score
+
           if (previousPlayedCards?.cards[0]?.value === 2 && bigTwoChop) {
             if (
               !gameValues.players[previousPlayedCardsKey].won &&
@@ -432,10 +433,11 @@ export class API {
           const valuePreviousPlayedCards = getTotalValue(previousPlayedCards.cards)
 
           if (
+            i === 1 &&
             valuePlayedCards > valuePreviousPlayedCards &&
             valuePreviousPlayedCards > 702 &&
+            valuePreviousPlayedCards < 716 &&
             !gameValues.players[previousPlayedCardsKey].won &&
-            i === 1 &&
             latestPlayedCards.cards.length === 4
           ) {
             await game.update({
@@ -443,51 +445,28 @@ export class API {
               [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 200,
             })
           }
+
+          if (
+            valuePlayedCards > valuePreviousPlayedCards &&
+            valuePlayedCards > 804 &&
+            valuePlayedCards < 1215 &&
+            !gameValues.players[previousPlayedCardsKey].won &&
+            previousPlayedCards.cards.length === 5 &&
+            gameValues.players[previousPlayedCardsKey].userName !== userName
+          ) {
+            await game.update({
+              [`players.${playerKey}.score`]: currentScore + 100,
+              [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 100,
+            })
+          }
         }
       }
     }
-
-    // if (valuePlayedCards > 702 && valuePlayedCards < 716 && latestPlayedCards.cards.length === 4) {
-    //   const previousPlayedCards = playedCards[playedCards.length - 1]
-
-    //   if (previousPlayedCards) {
-    //     const { userName: previousPlayedCardsUserName } = previousPlayedCards
-    //     const previousPlayedCardsPlayer = getPlayer(gameValues, previousPlayedCardsUserName)
-    //     const previousPlayedCardsKey = getPlayerKey(gameValues, previousPlayedCardsPlayer)
-    //     const previousPlayerScore = gameValues.players[previousPlayedCardsKey].score
-    //     const valuePreviousPlayedCards = getTotalValue(previousPlayedCards.cards)
-
-    //     if (
-    //       valuePlayedCards > valuePreviousPlayedCards &&
-    //       valuePreviousPlayedCards > 702 &&
-    //       !gameValues.players[previousPlayedCardsKey].won
-    //     ) {
-    //       await game.update({
-    //         [`players.${playerKey}.score`]: currentScore + 200,
-    //         [`players.${previousPlayedCardsKey}.score`]: previousPlayerScore - 200,
-    //       })
-    //     }
-    //   }
-    // }
-
-    //   // STRAIGHT FLUSH SHCHOPS
-    //   if (valuePlayedCards > 804 && valuePlayedCards > valueLatestPlayedCards) {
-    //     console.log('holsa')
-    //   }
-    // }
 
     // @TODO ensure that if the players last cards are single two he will automatically loose
 
     return cards
   }
-
-  // leave seatFN,
-  // set seat to empty
-  // Check gamestarted when leaving seat,
-  // if game not started:
-  // if game started and user leaves:
-  // set cards to empty,
-  // enable a way to calc score and think about how players will continue
 
   // pass function
   // should update property roundPass to true
@@ -496,6 +475,14 @@ export class API {
   // param is playernumber as a string for instance 'playerOne'
   // cannot pass if firstplay = true
   // after 1.5 min frontend should make a pass request
+
+  // leave seatFN,
+  // set seat to empty
+  // Check gamestarted when leaving seat,
+  // if game not started:
+  // if game started and user leaves:
+  // set cards to empty,
+  // enable a way to calc score and think about how players will continue
 
   // getCards should just return the players cards so that they can be rendered
   // need authentication
