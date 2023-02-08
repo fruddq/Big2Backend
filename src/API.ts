@@ -47,11 +47,11 @@ export class API {
     return this
   }
 
-  // @TODO When project is finished, ensure anonymous is allowed,
-  // clear them every night and warn in frontend before, what happens if they do not register
   // also delete users that havent logged in in 100 days
-  // Add a button that asks player how many cards they have left
+  // @TODO LASTCARD
+  // asks player how many cards they have left
   // If they have 1 card
+  // return true, else return false
 
   async createUser({
     userName,
@@ -137,10 +137,13 @@ export class API {
     if (!game) {
       throw new Error('Game not found, should not happen')
     }
+
+    // Do i need usersintable?
     if (game.dataValues.usersInTable.includes(userName)) {
       throw new Error('User already in game')
     }
 
+    // check if user is already in table.
     await this.models.Users.update(
       {
         joinedTable: gameName,
@@ -509,12 +512,43 @@ export class API {
   // Check gamestarted when leaving seat,
   // if game not started:
   // if game started and user leaves:
-  // set cards to empty,
-  // enable a way to calc score and think about how players will continue
+  async leaveSeat({ userName, gameName }: { readonly userName: string; readonly gameName: string }) {
+    const user = await this.models.Users.findOne({
+      where: { userName: { [Op.iLike]: userName } },
+    })
 
-  // getCards should just return the players cards so that they can be rendered
+    if (!user) {
+      throw new Error('Cant find player, should not happen')
+    }
+
+    if (user.dataValues.joinedTable !== gameName) {
+      throw new Error('User not in this game')
+    }
+
+    const game = await this.models.Games.findOne({
+      where: { gameName: { [Op.iLike]: gameName } },
+    })
+
+    if (!game) {
+      throw new Error('Game not found, should not happen')
+    }
+
+    const gameValues = game.dataValues as TableGames
+    const { gameStarted } = gameValues
+
+    if (gameStarted) {
+      throw new Error('Cannot leave until game is over')
+    }
+
+    const player = getPlayer(gameValues, userName)
+    const playerKey = getPlayerKey(gameValues, player)
+
+    await game.update({
+      [`players.${playerKey}.userName`]: '',
+    })
+  }
+
   // need authentication
-
   async getCards({ userName }: { readonly userName: string }) {
     const result = await this.models.Users.findOne({
       where: { userName: { [Op.iLike]: userName } },
@@ -524,6 +558,46 @@ export class API {
     }
     return result.dataValues.cards
   }
+
+  async leaveGame({ userName, gameName }: { readonly userName: string; readonly gameName: string }) {
+    const user = await this.models.Users.findOne({
+      where: { userName: { [Op.iLike]: userName } },
+    })
+
+    if (!user) {
+      throw new Error('Cant find player, should not happen')
+    }
+
+    if (user.dataValues.joinedTable !== gameName) {
+      throw new Error('User not in this game')
+    }
+
+    const game = await this.models.Games.findOne({
+      where: { gameName: { [Op.iLike]: gameName } },
+    })
+
+    if (!game) {
+      throw new Error('Game not found, should not happen')
+    }
+
+    const gameValues = game.dataValues as TableGames
+    // const { gameStarted } = gameValues
+
+    // if (gameStarted) {
+    //   throw new Error('Cannot leave until game is over')
+    // }
+
+    // const player = getPlayer(gameValues, userName)
+    // const playerKey = getPlayerKey(gameValues, player)
+
+    // await game.update({
+    //   [`players.${playerKey}.userName`]: '',
+    // })
+    console.log(user.dataValues)
+    console.log(game.dataValues)
+  }
+  // @TODO leaveGame
+  // @TODO removeGame
 }
 
 const user1 = { userName: 'frudd', password: 'password', email: 'frudd@example.com' }
@@ -715,11 +789,17 @@ await api.playCards({
   userName: user2.userName,
 })
 
+await api.leaveSeat({ userName: user4.userName, gameName: 'BorisGame' })
+
+await api.assignPlayer({ seatNumber: 4, userName: user5.userName, gameName: 'BorisGame' })
+
+await api.leaveGame({ userName: user4.userName, gameName: 'BorisGame' })
+
 const game = await api.models.Games.findOne({
   where: { gameName: { [Op.iLike]: 'BorisGame' } },
 })
 
-console.log(game!.dataValues)
+// console.log(game!.dataValues)
 // console.log(game!.dataValues.playedCards)
 
 // console.log(testCards2)
