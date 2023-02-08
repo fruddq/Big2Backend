@@ -111,11 +111,6 @@ export class API {
       pointMultiplier,
     })
 
-    // await this.models.Games.update(
-    //   { usersInTable: Sequelize.fn('array_append', Sequelize.col('usersInTable'), userName) },
-    //   { where: { gameName: { [Op.iLike]: gameName } } },
-    // )
-
     await this.models.Users.update(
       {
         ownedTable: gameName,
@@ -138,25 +133,21 @@ export class API {
       throw new Error('Game not found, should not happen')
     }
 
-    // Do i need usersintable?
-    // if (game.dataValues.usersInTable.includes(userName)) {
-    //   throw new Error('User already in game')
-    // }
+    const user = await this.models.Users.findOne({
+      where: { userName: { [Op.iLike]: userName } },
+    })
 
-    // check if user is already in table.
-    await this.models.Users.update(
-      {
-        joinedTable: gameName,
-      },
-      {
-        where: { userName: { [Op.iLike]: userName } },
-      },
-    )
+    if (!user) {
+      throw new Error('User not found, should not happen')
+    }
 
-    // await this.models.Games.update(
-    //   { usersInTable: Sequelize.fn('array_append', Sequelize.col('usersInTable'), userName) },
-    //   { where: { gameName: { [Op.iLike]: gameName } } },
-    // )
+    if (user.dataValues.joinedTable === gameName) {
+      throw new Error('User already in game')
+    }
+
+    await user.update({
+      joinedTable: gameName,
+    })
   }
 
   async assignPlayer({
