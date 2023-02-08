@@ -239,24 +239,6 @@ export class API {
     if (isStartingPlayer(playerFourCards)) {
       await game.set('players.playerFour.playerTurn', true).save()
     }
-
-    // testing
-    // const p1 = await this.models.Users.findOne({
-    //   where: { userName: { [Op.iLike]: playerOne } },
-    // })
-    // const p2 = await this.models.Users.findOne({
-    //   where: { userName: { [Op.iLike]: playerTwo } },
-    // })
-    // const p3 = await this.models.Users.findOne({
-    //   where: { userName: { [Op.iLike]: playerThree } },
-    // })
-    // const p4 = await this.models.Users.findOne({
-    //   where: { userName: { [Op.iLike]: playerFour } },
-    // })
-
-    // console.log(p1?.dataValues)
-    // console.log(game?.dataValues)
-    // stop testing
   }
 
   // play cards function
@@ -409,7 +391,7 @@ export class API {
 
     // CHOP
     if (bigTwoChop || fourOfAKindChop) {
-      for (let i = 1; i < 6; i++) {
+      for (let i = 1; i < playedCards.length; i++) {
         const previousPlayedCards = playedCards[playedCards.length - i]
 
         if (previousPlayedCards) {
@@ -469,13 +451,43 @@ export class API {
   }
 
   // pass function
-  // should update property roundPass to true
+
   // should check if three ppl have passed
-  // should also check whos turn its next and set it to true
-  // param is playernumber as a string for instance 'playerOne'
+
   // cannot pass if firstplay = true
   // after 1.5 min frontend should make a pass request
+  async passRound({ gameName, userName }: { readonly gameName: string; readonly userName: string }) {
+    const game = await this.models.Games.findOne({
+      where: { gameName: { [Op.iLike]: gameName } },
+    })
+    if (!game) {
+      throw new Error('Game not found, should not happen')
+    }
+    const gameValues = game.dataValues as TableGames
+    const player = getPlayer(gameValues, userName)
 
+    if (!player.playerTurn) {
+      throw new Error('Not players turn')
+    }
+
+    // @TODO CHECK THIS IN FRONTEND AS WELL!
+    if (player.roundPass) {
+      throw new Error('Player has already passed this round')
+    }
+
+    if (gameValues.isFirstPlay) {
+      throw new Error('Cannot pass on first round')
+    }
+    const playerKey = getPlayerKey(gameValues, player)
+    const nextPlayerKey = getNextPlayerTurn(gameValues.players)
+    await game.update({
+      [`players.${playerKey}.playerTurn`]: false,
+      [`players.${playerKey}.roundPass`]: true,
+      [`players.${nextPlayerKey}.playerTurn`]: true,
+    })
+
+    return 'Hello'
+  }
   // leave seatFN,
   // set seat to empty
   // Check gamestarted when leaving seat,
@@ -486,6 +498,7 @@ export class API {
 
   // getCards should just return the players cards so that they can be rendered
   // need authentication
+
   async getCards({ userName }: { readonly userName: string }) {
     const result = await this.models.Users.findOne({
       where: { userName: { [Op.iLike]: userName } },
@@ -494,25 +507,6 @@ export class API {
       throw new Error('Cant find player, should not happen')
     }
     return result.dataValues.cards
-  }
-
-  async updatePlayerScore(gameName: string, playerName: string, score: number) {
-    const game = await this.models.Games.findOne({
-      where: { gameName: { [Op.iLike]: gameName } },
-    })
-
-    if (!game) {
-      throw new Error('Game not found, should not happen')
-    }
-
-    const gameValues = game.dataValues as TableGames
-    const player = getPlayer(game.dataValues, playerName)
-    const playerKey = getPlayerKey(game.dataValues, player)
-    const currentScore = gameValues.players[playerKey].score
-
-    await game.update({
-      [`players.${playerKey}.score`]: currentScore + score,
-    })
   }
 }
 
@@ -596,6 +590,11 @@ await api.playCards({
   cards: [testCards4[1], testCards4[2], testCards4[3], testCards4[4]],
   gameName: 'BorisGame',
   userName: user4.userName,
+})
+
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user1.userName,
 })
 
 const game = await api.models.Games.findOne({
