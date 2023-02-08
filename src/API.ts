@@ -490,6 +490,7 @@ export class API {
         ['players.playerTwo.roundPass']: false,
         ['players.playerThree.roundPass']: false,
         ['players.playerFour.roundPass']: false,
+        playedCards: [],
       })
     }
   }
@@ -612,12 +613,23 @@ await api.passRound({
   gameName: 'BorisGame',
   userName: user3.userName,
 })
+
+// await api.playCards({
+//   cards: [testCards4[5], testCards4[0], testCards4[6], testCards4[7], testCards4[8]],
+//   gameName: 'BorisGame',
+//   userName: user4.userName,
+// })
+
 const game = await api.models.Games.findOne({
   where: { gameName: { [Op.iLike]: 'BorisGame' } },
 })
 
 // console.log(game!.dataValues)
+console.log(game!.dataValues.playedCards)
 
+// console.log(testCards4)
+
+// console.log(await api.getCards({ userName: user4.userName }))
 // console.log(game1?.dataValues)
 // @TODO Check for cascading linking database columns and cascade it:
 // players: {
