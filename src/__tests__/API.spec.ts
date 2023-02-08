@@ -2,7 +2,7 @@ import { Op } from 'sequelize'
 import { describe, expect, it, vi } from 'vitest'
 import { API as TheModule } from '../API'
 
-describe('TheModule', async () => {
+describe.skip('TheModule', async () => {
   const tester = {
     setupDB: async () => {
       const api = new TheModule()

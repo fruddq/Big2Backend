@@ -346,8 +346,6 @@ export class API {
       })
     }
 
-    // @TODO make surethere is a rule for straight flush
-
     const newPlayedCards = [...playedCards]
     newPlayedCards.push({ userName, cards })
     await game.update({
@@ -614,18 +612,39 @@ await api.passRound({
   userName: user3.userName,
 })
 
-// await api.playCards({
-//   cards: [testCards4[5], testCards4[0], testCards4[6], testCards4[7], testCards4[8]],
-//   gameName: 'BorisGame',
-//   userName: user4.userName,
-// })
+await api.playCards({
+  cards: [testCards4[5], testCards4[0], testCards4[6], testCards4[7], testCards4[8]],
+  gameName: 'BorisGame',
+  userName: user4.userName,
+})
+
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user1.userName,
+})
+
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user2.userName,
+})
+
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user3.userName,
+})
+
+await api.playCards({
+  cards: [testCards4[11], testCards4[9], testCards4[10]],
+  gameName: 'BorisGame',
+  userName: user4.userName,
+})
 
 const game = await api.models.Games.findOne({
   where: { gameName: { [Op.iLike]: 'BorisGame' } },
 })
 
-// console.log(game!.dataValues)
-console.log(game!.dataValues.playedCards)
+console.log(game!.dataValues)
+// console.log(game!.dataValues.playedCards)
 
 // console.log(testCards4)
 
