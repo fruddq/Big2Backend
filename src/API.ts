@@ -111,10 +111,10 @@ export class API {
       pointMultiplier,
     })
 
-    await this.models.Games.update(
-      { usersInTable: Sequelize.fn('array_append', Sequelize.col('usersInTable'), userName) },
-      { where: { gameName: { [Op.iLike]: gameName } } },
-    )
+    // await this.models.Games.update(
+    //   { usersInTable: Sequelize.fn('array_append', Sequelize.col('usersInTable'), userName) },
+    //   { where: { gameName: { [Op.iLike]: gameName } } },
+    // )
 
     await this.models.Users.update(
       {
@@ -139,9 +139,9 @@ export class API {
     }
 
     // Do i need usersintable?
-    if (game.dataValues.usersInTable.includes(userName)) {
-      throw new Error('User already in game')
-    }
+    // if (game.dataValues.usersInTable.includes(userName)) {
+    //   throw new Error('User already in game')
+    // }
 
     // check if user is already in table.
     await this.models.Users.update(
@@ -153,10 +153,10 @@ export class API {
       },
     )
 
-    await this.models.Games.update(
-      { usersInTable: Sequelize.fn('array_append', Sequelize.col('usersInTable'), userName) },
-      { where: { gameName: { [Op.iLike]: gameName } } },
-    )
+    // await this.models.Games.update(
+    //   { usersInTable: Sequelize.fn('array_append', Sequelize.col('usersInTable'), userName) },
+    //   { where: { gameName: { [Op.iLike]: gameName } } },
+    // )
   }
 
   async assignPlayer({
