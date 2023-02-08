@@ -450,11 +450,6 @@ export class API {
     return cards
   }
 
-  // pass function
-
-  // should check if three ppl have passed
-
-  // cannot pass if firstplay = true
   // after 1.5 min frontend should make a pass request
   async passRound({ gameName, userName }: { readonly gameName: string; readonly userName: string }) {
     const game = await this.models.Games.findOne({
@@ -465,6 +460,7 @@ export class API {
     }
     const gameValues = game.dataValues as TableGames
     const player = getPlayer(gameValues, userName)
+    const { isFirstPlay, players } = gameValues
 
     if (!player.playerTurn) {
       throw new Error('Not players turn')
@@ -475,19 +471,29 @@ export class API {
       throw new Error('Player has already passed this round')
     }
 
-    if (gameValues.isFirstPlay) {
+    if (isFirstPlay) {
       throw new Error('Cannot pass on first round')
     }
+
     const playerKey = getPlayerKey(gameValues, player)
-    const nextPlayerKey = getNextPlayerTurn(gameValues.players)
+    const nextPlayerKey = getNextPlayerTurn(players)
     await game.update({
       [`players.${playerKey}.playerTurn`]: false,
       [`players.${playerKey}.roundPass`]: true,
       [`players.${nextPlayerKey}.playerTurn`]: true,
     })
 
-    return 'Hello'
+    const passedPlayers = Object.values(players).filter((player) => player.roundPass === true)
+    if (passedPlayers.length === 3) {
+      await game.update({
+        ['players.playerOne.roundPass']: false,
+        ['players.playerTwo.roundPass']: false,
+        ['players.playerThree.roundPass']: false,
+        ['players.playerFour.roundPass']: false,
+      })
+    }
   }
+
   // leave seatFN,
   // set seat to empty
   // Check gamestarted when leaving seat,
@@ -597,11 +603,20 @@ await api.passRound({
   userName: user1.userName,
 })
 
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user2.userName,
+})
+
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user3.userName,
+})
 const game = await api.models.Games.findOne({
   where: { gameName: { [Op.iLike]: 'BorisGame' } },
 })
 
-console.log(game!.dataValues)
+// console.log(game!.dataValues)
 
 // console.log(game1?.dataValues)
 // @TODO Check for cascading linking database columns and cascade it:
