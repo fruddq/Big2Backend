@@ -2,7 +2,7 @@ import { Sequelize, Op } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
-import { Models as ModelsDB, playedCards, Player, PlayerKey, TableGames } from './DB/models.js'
+import { Models as ModelsDB, playedCards, PlayerKey, TableGames } from './DB/models.js'
 import { validateUser } from './modules/validateUser.js'
 import { isTest } from './config.js'
 import { Engine } from './modules/Engine.js'
@@ -265,7 +265,12 @@ export class API {
     }
 
     const gameValues = game.dataValues as TableGames
-    const { pointMultiplier, winnerNumber, players, playedCards, isFirstPlay } = gameValues
+    const { pointMultiplier, winnerNumber, players, playedCards, isFirstPlay, gameStarted } = gameValues
+
+    if (!gameStarted) {
+      throw new Error('Game not started')
+    }
+
     const player = getPlayer(gameValues, userName)
 
     // @TODO CHECK THIS IN FRONTEND AS WELL!
@@ -380,8 +385,9 @@ export class API {
         })
         // @TODO check that getlooserkey happens after playerwon sets to true for third player
         const looserKey = Object.keys(players).find((key) => players[key as PlayerKey].won === false) as PlayerKey
+        const looserScore = gameValues.players[looserKey].score
         await game.update({
-          [`players.${looserKey}.score`]: currentScore - pointMultiplier,
+          [`players.${looserKey}.score`]: looserScore - pointMultiplier,
           gameStarted: false,
         })
       }
@@ -458,7 +464,11 @@ export class API {
     }
     const gameValues = game.dataValues as TableGames
     const player = getPlayer(gameValues, userName)
-    const { isFirstPlay, players } = gameValues
+    const { isFirstPlay, players, gameStarted } = gameValues
+
+    if (!gameStarted) {
+      throw new Error('Game not started')
+    }
 
     if (!player.playerTurn) {
       throw new Error('Not players turn')
@@ -482,7 +492,8 @@ export class API {
     })
 
     const passedPlayers = Object.values(players).filter((player) => player.roundPass === true)
-    if (passedPlayers.length === 3) {
+    const wonPlayers = Object.values(players).filter((player) => player.won === true)
+    if (passedPlayers.length + wonPlayers.length === 3) {
       await game.update({
         ['players.playerOne.roundPass']: false,
         ['players.playerTwo.roundPass']: false,
@@ -639,6 +650,71 @@ await api.playCards({
   userName: user4.userName,
 })
 
+await api.playCards({
+  cards: [testCards1[4], testCards1[6], testCards1[7]],
+  gameName: 'BorisGame',
+  userName: user1.userName,
+})
+
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user2.userName,
+})
+
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user3.userName,
+})
+
+await api.playCards({
+  cards: [testCards1[0], testCards1[1], testCards1[2], testCards1[3], testCards1[12]],
+  gameName: 'BorisGame',
+  userName: user1.userName,
+})
+
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user2.userName,
+})
+
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user3.userName,
+})
+
+await api.playCards({
+  cards: [testCards1[11], testCards1[9], testCards1[10]],
+  gameName: 'BorisGame',
+  userName: user1.userName,
+})
+
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user2.userName,
+})
+
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user3.userName,
+})
+
+await api.playCards({
+  cards: [testCards2[0], testCards2[1], testCards2[2], testCards2[12], testCards2[11]],
+  gameName: 'BorisGame',
+  userName: user2.userName,
+})
+
+await api.passRound({
+  gameName: 'BorisGame',
+  userName: user3.userName,
+})
+
+await api.playCards({
+  cards: [testCards2[10], testCards2[8], testCards2[7]],
+  gameName: 'BorisGame',
+  userName: user2.userName,
+})
+
 const game = await api.models.Games.findOne({
   where: { gameName: { [Op.iLike]: 'BorisGame' } },
 })
@@ -646,9 +722,9 @@ const game = await api.models.Games.findOne({
 console.log(game!.dataValues)
 // console.log(game!.dataValues.playedCards)
 
-// console.log(testCards4)
+// console.log(testCards2)
 
-// console.log(await api.getCards({ userName: user4.userName }))
+// console.log(await api.getCards({ userName: user2.userName }))
 // console.log(game1?.dataValues)
 // @TODO Check for cascading linking database columns and cascade it:
 // players: {
